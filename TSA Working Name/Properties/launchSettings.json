@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "TSA Working Name (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "TSA Working Name (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}
