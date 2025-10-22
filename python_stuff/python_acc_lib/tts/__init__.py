@@ -5,7 +5,7 @@ import os
 import playsound
 import edge_tts
 import time
-from ..log.basic_logs import *
+from ..logger.basic_logs import *
 
 # Define queue
 class Queue():
