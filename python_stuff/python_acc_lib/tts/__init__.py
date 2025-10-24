@@ -2,10 +2,13 @@
 import threading
 import asyncio
 import os
-import playsound
+import pygame
 import edge_tts
 import time
 from ..logger.basic_logs import *
+
+# Initialize pygame
+pygame.init()
 
 # Define queue
 class Queue():
@@ -342,6 +345,13 @@ class Queue():
         Wipes the /temp directory of output{n}.mp3 files and clears queue
         """
         
+        # Make sure directory exists
+        if "temp" not in os.listdir():
+            
+            # If it does not exist, create one and end func            
+            os.mkdir(".\\temp")
+            return
+        
         # Wipe queue
         self.play_queue:dict[str,list[tuple]] = {}
         self.generate_queue:dict[str,list[tuple]] = {}
@@ -419,10 +429,22 @@ def play(queue:Queue,path:str):
     info(f"Playing TTS Message at: {path}",__name__)
     
     # Play sound
-    playsound.playsound(path)
+    pygame.mixer.music.load(path)
+    pygame.mixer.music.play()
+    
+    # Wait for completion
+    while pygame.mixer.music.get_busy():
+        
+        time.sleep(0.1)
+        
+    # Unload sound
+    pygame.mixer.music.unload()
     
     # Once finished, allow queue to play another sound
     queue.playing = False
+    
+    # Log play completion
+    info(f"Completed playing TTS Message at: {path}",__name__)
     
     # Remove sound
     os.remove(path)

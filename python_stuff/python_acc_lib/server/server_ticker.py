@@ -4,10 +4,8 @@ Ticker for server.Server
 from ..server import Server
 import json
 from ..logger.basic_logs import *
-from .. import tts
 from . import server_help
 import threading
-import atexit
 
 BLANK_PACKET_MAXIMUM:int = 100 # Number of blank packets received before server will automatically shut off
 BLANK_PACKET_COUNT:int = 0 # Number of blank packets received

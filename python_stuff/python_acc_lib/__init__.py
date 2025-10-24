@@ -15,8 +15,8 @@ def verify_lib():
     
     # Check libraries
     library_checker.check_library("edge_tts","edge-tts","7.2.0")
-    library_checker.check_library("playsound","playsound","1.2.2")
     library_checker.check_library("pyglet","pyglet","2.1.8")
+    library_checker.check_library("pygame","pygame","2.6.1")
     
     # Download libraries
     library_checker.install_all()
