@@ -70,12 +70,12 @@ def check_library(library_name:str,library_pip:str,version:str=""):
             if lib_version != version:
                 
                 # Notify and add to queue
-                warn(f"Version: {lib_version} (Incorrect)")
+                warn(f"Version: {lib_version} (Incorrect)",__name__)
                 PIP_MUST_INSTALL[library_pip] = version
             else:
                 
                 # Notify that version is corect
-                info(f"Version: {lib_version} (Correct)")
+                info(f"Version: {lib_version} (Correct)",__name__)
         
     # On failure, queue download
     except ModuleNotFoundError:

@@ -138,7 +138,7 @@ def tick(server:Server):
         if BLANK_PACKET_COUNT >= BLANK_PACKET_MAXIMUM:
             
             # Send last log
-            error("Maximum number of empty packets, ending server",__name__)
+            critical("Maximum number of empty packets, ending server",__name__)
             
             server.is_alive = False
             quit()

@@ -53,9 +53,13 @@ class Server:
         self.family = family
         
         # Generate server
-        self.server_socket = socket.create_server((ip,port),family=family)
+        try:
+            self.server_socket = socket.create_server((ip,port),family=family)
+        except:
+            critical("Do not try to make multiple servers on the same port",__name__)
+            quit()
 
-        # Print output message        
+        # Print output message  
         info(f"Server created at ip: {ip} and port: {port}",__name__)
         
         # Generate text-to-speech queue
@@ -64,7 +68,7 @@ class Server:
         # Clear previous tts files
         self.tts_queue.wipe_dir()
         
-    def accept(self):
+    def accept(self) -> None:
         """
         Accepts the client connection and starts verification
         """
@@ -82,30 +86,56 @@ class Server:
         # Print output message
         info(f"Server started connection to {self.client_addr} and started verify ({self.verify_code_solved})",__name__)
         
-    def send(self,data:str):
+    def send(self,data:str) -> None:
         """
-        Sends data to server
+        Sends data to server with automatic length header
         
         Arguments:
             data:
                 Data to send to server
         """
         
-        # Encode and send
-        self.client_conn.send(data.encode())
+        # Find length header
+        length = len(data)
         
-    def recv(self,bufsize:int=1024):
+        # Encode and send
+        self.client_conn.send(f"{length}\n{data}".encode())
+        
+    def recv(self,bufsize:int=1024) -> str:
         """
         Receives data from server
         
         Arguments:
             bufsize:
-                Maximum amount of data to receive
+                Maximum amount of data to receive (This is overridden by length header)
         """
         
         try:
             # Read and decode
-            return self.client_conn.recv(bufsize).decode()
+            data = self.client_conn.recv(bufsize).decode()
+            split_data = data.split("\n")
+            
+            # Find length header
+            header = split_data[0]
+            
+            # Get remaining data (if applicable)
+            remaining = int(header)-bufsize-len(header)
+            if remaining > 0:
+                split_data.append(self.client_conn.recv())
+            
+            # Return with removed header
+            return "".join(split_data[1:])
+            
+            return data
+        
+        except ValueError as e:
+            
+            # Warn about data
+            error(f"Corrupted recv data: {e}",__name__)
+            
+            # Return blank
+            return '{"type":"ERROR","content":"CORRUPT DATA"}'
+            
         except:
             
             # Reset server to default state
@@ -114,7 +144,7 @@ class Server:
             self.client_verified = False
             
             # Print output message
-            warn("Client has closed connection unexpectedly, ending server",__name__)
+            critical("Client has closed connection unexpectedly, ending server",__name__)
             
             # Kill server
             self.is_alive = False
@@ -123,11 +153,11 @@ class Server:
             quit()
             
     
-    def __str__(self):
+    def __str__(self) -> str:
         
         return f"# -- Server -- #\nIP: {self.ip}\nPort: {self.port}\nSocket: {self.server_socket}"
     
-    def tick_server(self):
+    def tick_server(self) -> None:
         """
         Tick server loop to receive, interpret, and return client requests 
         """
@@ -135,7 +165,7 @@ class Server:
         # Tick server
         server_ticker.tick(self)
         
-    def tick_threaded(self):
+    def tick_threaded(self) -> None:
         """
         Starts the threaded server
         
@@ -173,7 +203,11 @@ class Client:
         self.family = family
         
         # Generate client
-        self.client_socket = socket.create_connection((ip,port))
+        try:
+            self.client_socket = socket.create_connection((ip,port))
+        except:
+            critical("Please make sure to start the server before running the client",__name__)
+            quit()
         
         # Print output message        
         info(f"Client created at ip: {ip} and port: {port}",__name__)
@@ -183,8 +217,13 @@ class Client:
         Verifies client to server after server has accepted
         """
         
-        # Receive json
-        recv_json:dict = json.loads(self.recv())
+        # Receive json and load
+        data = self.recv()
+        try:
+            recv_json:dict = json.loads(data)
+        except:
+            critical(f"Corrupted recv data:\n{data}",__name__)
+            quit()
         
         # Make sure type is correct
         if recv_json["type"] != "verify":
@@ -214,27 +253,30 @@ class Client:
         
     def send(self,data:str):
         """
-        Sends data to server
+        Sends data to server with automatic length header
         
         Arguments:
             data:
                 Data to send to server
         """
         
+        # Find length header
+        length = len(data)
+        
         # Encode and send
-        self.client_socket.send(data.encode())
+        self.client_socket.send(f"{length}\n{data}".encode())
         
     def send_json(self,data:dict):
         """
-        Sends json to server
+        Sends json to server with automatic length header
         
         Arguments:
             data:
                 Data to send to server
         """
         
-        # Encode and send
-        self.client_socket.send(json.dumps(data).encode())
+        # Dump and send
+        self.send(json.dumps(data))
         
     def recv(self,bufsize:int=1024):
         """
@@ -242,16 +284,37 @@ class Client:
         
         Arguments:
             bufsize:
-                Maximum amount of data to receive
+                Maximum amount of data to receive (This is overridden by length header)
         """
         
         try:
             # Read and decode
-            return self.client_socket.recv(bufsize).decode()
+            data = self.client_socket.recv(bufsize).decode()
+            split_data = data.split("\n")
+            
+            # Find length header
+            header = split_data[0]
+            
+            # Get remaining data (if applicable)
+            remaining = int(header)-bufsize-len(header)
+            if remaining > 0:
+                split_data.append(self.client_socket.recv())
+            
+            # Return with removed header
+            return "".join(split_data[1:])
+        
+        except ValueError as e:
+            
+            # Warn about data
+            error(f"Corrupted recv data: {e}",__name__)
+            
+            # Return blank
+            return '{"type":"ERROR","content":"CORRUPT DATA"}'
+        
         except:
             
             # Print output message
-            warn("Server has closed connection unexpectedly, quitting program",__name__)
+            critical("Server has closed connection unexpectedly, quitting program",__name__)
             
             # Exit program
             quit()
