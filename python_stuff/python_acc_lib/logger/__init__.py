@@ -35,10 +35,10 @@ def set_stdout():
     IS_STDOUT = True
 
 # Levels of writes to log
-level = Literal["INFO","ERROR","WARN"]
+level = Literal["INFO","ERROR","WARN","DEBUG","CRITICAL"]
 
 # Colors for each log level
-level_colors = {"INFO":"\x1b[0m","ERROR":"\x1b[31m","WARN":"\x1b[33m"}
+level_colors = {"INFO":"\x1b[0m","ERROR":"\x1b[31m","WARN":"\x1b[33m","DEBUG":"\x1b[34m","CRITICAL":"\x1b[35m"}
 
 def write_log(text:str,log_level:level="INFO",parent:str|None=None):
     """

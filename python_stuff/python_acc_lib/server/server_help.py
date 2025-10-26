@@ -6,8 +6,9 @@ from ..server import Server
 # Base help menu
 HELP_MENU = """
 Server for sending and receiving calls to run accessibility functions (If this list gets cut off, increase the maximum buffer size in recv)
-Each packet to server should be in JSON, and each should wait for the server to send back a reply (it always will once it is ready)
-JSON Formatting
+
+Packet Formatting
+JSON_DATA_SIZE
 {"type":CONTENT_TYPE,"content":CONTENT,...}
 
 The server will almost always send back the same type that was given to it, unless there is an error

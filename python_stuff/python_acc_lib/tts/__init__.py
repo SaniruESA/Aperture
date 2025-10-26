@@ -350,6 +350,7 @@ class Queue():
             
             # If it does not exist, create one and end func            
             os.mkdir(".\\temp")
+            warn("No temp found, creating temp",__name__)
             return
         
         # Wipe queue
