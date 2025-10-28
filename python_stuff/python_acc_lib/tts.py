@@ -5,7 +5,7 @@ import os
 import pygame
 import edge_tts
 import time
-from ..logger.basic_logs import *
+from .logger.basic_logs import *
 
 # Initialize pygame
 pygame.init()

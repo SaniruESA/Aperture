@@ -1,3 +1,7 @@
+"""
+A basic server to connect python and other languages together
+"""
+
 import socket
 from typing import Literal
 from ..logger.basic_logs import *

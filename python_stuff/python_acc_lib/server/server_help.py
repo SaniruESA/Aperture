@@ -11,7 +11,7 @@ Packet Formatting
 JSON_DATA_SIZE
 {"type":CONTENT_TYPE,"content":CONTENT,...}
 
-The server will almost always send back the same type that was given to it, unless there is an error
+The server will almost always send back the same type that was given to it, unless there is a critical error
 
 # - Specific Functions - #
 Verify
@@ -135,4 +135,5 @@ def help_menu(server:Server,recv_json:dict):
     
     # If they are looking for anything
     else:
+        
         server.send(HELP_MENU)

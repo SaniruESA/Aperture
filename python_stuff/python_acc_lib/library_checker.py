@@ -3,7 +3,7 @@ Ensures libraries exist before importing them
 """
 import os
 import subprocess
-from ..logger.basic_logs import *
+from .logger.basic_logs import *
 
 def install_pip():
     """
@@ -127,3 +127,19 @@ def install_all():
     
     # Print final message
     info(f"\n\nAll modules verified\n{MODULE_LIST}",__name__)
+    
+def verify_lib():
+    """
+    Checks and downloads all libraries
+    """
+    
+    # Log info message
+    info("Checking libraries",__name__)
+    
+    # Check libraries
+    check_library("edge_tts","edge-tts","7.2.0")
+    check_library("pyglet","pyglet","2.1.8")
+    check_library("pygame","pygame","2.6.1")
+    
+    # Download libraries
+    install_all()
