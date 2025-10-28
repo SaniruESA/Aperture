@@ -4,7 +4,6 @@ from python_acc_lib.logger.basic_logs import *
 import time
 import python_acc_lib
 
-
 if __name__ == "__main__":
 
     logger.set_stdout()

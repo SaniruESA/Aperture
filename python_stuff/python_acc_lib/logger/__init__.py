@@ -1,5 +1,5 @@
 """
-Live logging to file with timestamps and 
+Live logging to file or stdout with timestamps 
 """
 
 from typing import Literal
