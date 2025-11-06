@@ -129,9 +129,7 @@ class Server:
             
             # Return with removed header
             return "".join(split_data[1:])
-            
-            return data
-        
+                    
         except ValueError as e:
             
             # Warn about data
