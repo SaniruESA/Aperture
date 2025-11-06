@@ -33,6 +33,7 @@ verify - Verify client
 help - Help menu
 exit - Shutdown server
 generate_tts - Send a generation request to queue
+add_button - Adds a button for tab navigation
 """
 
 # Help menu for verify
@@ -78,6 +79,16 @@ priority: The urgency of the audio to be played (lower will be played first)
 
 Starts a generate request from the edge servers for given tts text
 The text will be played once the playing queue is empty and the message has been generated
+"""
+
+# Help menu for adding a button
+HELP_ADD_BUTTON = """
+Add Button
+type: add_button
+content: button position list [x,y,w,h]
+name: Button name
+
+This will add a button for tab navigation to select
 """
 
 def format_json(item:str):
@@ -127,6 +138,11 @@ def help_menu(server:Server,recv_json:dict):
             case "generate_tts":
                 
                 server.send(format_json(HELP_TTS))
+                
+            # Adding Button
+            case "add_button":
+                
+                server.send(format_json(HELP_ADD_BUTTON))
                 
             # Other
             case _:

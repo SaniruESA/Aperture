@@ -5,12 +5,18 @@ from ..server import Server
 import json
 from ..logger.basic_logs import *
 from . import server_help
+from .. import tts
 import threading
+import asyncio
+import pyglet
+from .. import ui
 
 BLANK_PACKET_MAXIMUM:int = 100 # Number of blank packets received before server will automatically shut off
 BLANK_PACKET_COUNT:int = 0 # Number of blank packets received
 SERVER_ASYNC_THREAD:threading.Thread = None # Async thread for server
-    
+PYGLET_ASYNC_THREAD:threading.Thread = None # Async thread for pyglet
+SERVER:Server # Last used server for tick
+
 def verify(server:Server,recv_json:dict):
     """
     Verify protocol for server
@@ -64,10 +70,49 @@ def queue_generate_tts(server:Server,recv_json:dict):
     
     # Start queue
     server.tts_queue.generate(recv_json["content"],voice=recv_json["voice"],volume=recv_json["volume"],pitch=recv_json["pitch"],priority=recv_json["priority"],rate=recv_json["rate"])
-    
+
     # Return back
     server.send('{"type":"tts_queue","content":"Started"}')
 
+def generate_button_tts(name:str,path:str):
+    """
+    Generates TTS for a button to play when hovered
+    
+    Arguments:
+        name:
+            The name of the button
+        path:   
+            The path of the button TTS text
+    """
+    
+    asyncio.run(tts.generate_no_play(name,path=path))
+    
+def add_button(server:Server,recv_json:dict):
+    """
+    Adds a button to known server buttons for tab nav
+    
+    Arguments:
+        server:
+            Server instance
+        recv_json:
+            Received json content
+    """
+    
+    # Get rect
+    rect = json.loads(recv_json["content"])
+    name = recv_json["name"]
+    
+    # Add button to list
+    server.keyboardtab.addUIElement(rect,"button",name)
+    
+    # Preprocess text
+    path = f".\\temp\\output_{name}.mp3"
+    threading.Thread(target=generate_button_tts,args=(name,path)).start()
+    
+    # Return back
+    server.send('{"type":"add_button","content":"Button has been added"}')
+    
+    
 def _server_threaded(server:Server):
     """
     Thread of the server
@@ -90,6 +135,18 @@ def _server_threaded(server:Server):
     # Notify that thread was ended
     info("Server thread ended",__name__)
     
+def _tick_server_threaded(server:Server):
+    """
+    Tick threaded server
+    """
+    
+    info("Started server ticking",__name__)
+    
+    # Tick forever
+    while server.is_alive:
+        tick(server)
+    
+    
 def start_threaded_server(server:Server):
     """
     Tick server async (for tts generation)
@@ -98,7 +155,7 @@ def start_threaded_server(server:Server):
         server:
             Server instance
     """
-    global SERVER_ASYNC_THREAD,SERVER_ASYNC_RUNNING
+    global SERVER_ASYNC_THREAD,SERVER_ASYNC_RUNNING,PYGLET_ASYNC_THREAD,WINDOW
     
     # Set running to true to allow thread to run
     SERVER_ASYNC_RUNNING = True
@@ -106,6 +163,10 @@ def start_threaded_server(server:Server):
     # Generate and start thread
     SERVER_ASYNC_THREAD = threading.Thread(target=_server_threaded,args=(server,))
     SERVER_ASYNC_THREAD.start()
+    
+    WINDOW = ui.Window()
+    TICK_ASYNC_THREAD = threading.Thread(target=_tick_server_threaded,args=(server,))
+    TICK_ASYNC_THREAD.start()
     
 def tick(server:Server):
     """
@@ -204,6 +265,12 @@ def tick(server:Server):
             
             # Return help menu
             server_help.help_menu(server,recv_json)
+            
+        # Adding button
+        case "add_button":
+            
+            # Add a button to tab nav
+            add_button(server,recv_json)
         
         # Unknown type
         case _:
@@ -213,3 +280,12 @@ def tick(server:Server):
             
             # Return back error
             server.send('{"type":"error","content":"Unknown type (send \"help\" for a help menu)"}')
+            
+def start_pyglet_server(server:Server):
+    """
+    Starts the pyglet portion of the server
+    """
+    
+    # Start app
+    info("Started pylget app",__name__)
+    pyglet.app.run()

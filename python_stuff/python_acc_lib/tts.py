@@ -32,6 +32,7 @@ class Queue():
         self.generate_queue:dict[str,list[tuple]] = {}
         self.generate_file_num:int = 0
         self.generating = False
+        self.force_completion = False
         
         # Play queue to prevent overlapping sound
         self.play_queue:dict[str,list[tuple]] = {}
@@ -58,13 +59,13 @@ class Queue():
         # Start generating
         asyncio.run(generate(self,text,voice,volume,rate,pitch,priority,path))
 
-    def _play(self,path:str,priority:int,text:str,ready:bool):
+    def _play(self,path:str,priority:int,text:str,ready:bool,no_delete:bool):
         """
         Begins the play of an item in queue
         """
         
         self.remove_play(path,priority)
-        play(self,path)
+        play(self,path,no_delete)
     
     def generate(self,text:str,voice:str="en-US-EmmaMultilingualNeural",volume:int=0,rate:int=0,pitch:int=0,priority:int=0,timeout:int=None):
         """
@@ -102,7 +103,7 @@ class Queue():
         # Log generation message
         info(f"Generating request added for TTS Message with content: {text}",__name__)
     
-    def queue_play(self,path:str,priority:int=0,text:str="",ready:bool=True):
+    def queue_play(self,path:str,priority:int=0,text:str="",ready:bool=True,no_delete:bool=False):
         """
         Queues a play (usually by generate function)
         
@@ -115,6 +116,8 @@ class Queue():
                 The original text message of the generate request
             ready:
                 If the sound should be played once the queue has reached it or if the program should wait for ready_play() to called
+            no_delete:
+                If the file should be preserved once playing is completed
         """
         
         # Get the play queue
@@ -125,7 +128,7 @@ class Queue():
             queue[priority] = []
             
         # Add request to queue
-        queue[priority].append((path,priority,text,ready))
+        queue[priority].append((path,priority,text,ready,no_delete))
         
         # Log play message
         info(f"Play request request added for TTS Message with content: {text}",__name__)
@@ -319,6 +322,13 @@ class Queue():
                 if len(queue_section) == 0:
                     
                     queue.pop(priority)
+    
+    def stop_play(self):
+        """
+        Instantly stops the currently playing audio
+        """
+        
+        self.force_completion = True
         
     def check_generate(self):
         """
@@ -393,6 +403,8 @@ async def generate(queue:Queue,text:str,voice:str="en-US-EmmaMultilingualNeural"
             The additional pitch of the voice (Hz) this can be positive or negative
         priority:
             The urgency of the audio to be played (lower will be played first)
+        path:
+            The location to store the file
     """
     
     # Format parameters
@@ -415,7 +427,42 @@ async def generate(queue:Queue,text:str,voice:str="en-US-EmmaMultilingualNeural"
     # Log that generation was completed
     info(f"Completed tts message generation at: {path} with content: {text}",__name__)
     
-def play(queue:Queue,path:str):
+async def generate_no_play(text:str,voice:str="en-US-EmmaMultilingualNeural",volume:int=0,rate:int=0,pitch:int=0,path:str=".\\tts\\output.mp3"):
+    """
+    Request immediate generation from edge servers and not play
+        
+    Arguments:
+        queue:
+            The queue to append play request to
+        text:
+            The text for the AI to speak
+        voice:
+            The voice for the AI to use
+        rate:
+            The additional speed of the voice (%) this can be positive or negative
+        volume:
+            The additional volume of the voice (%) this can be positive or negative
+        pitch:
+            The additional pitch of the voice (Hz) this can be positive or negative
+        path:
+            The location to store the file
+    """
+    
+    # Format parameters
+    rate = ("+" if rate >= 0 else "") + str(rate) + "%"
+    volume = ("+" if volume >= 0 else "") + str(volume) + "%"
+    pitch = ("+" if pitch >= 0 else "") + str(pitch) + "Hz"
+    
+    # Communicate to edge servers
+    communicated = edge_tts.Communicate(text,voice,rate=rate,volume=volume,pitch=pitch)
+    
+    # Save the mp3 file
+    await communicated.save(path)
+    
+    # Log that generation was completed
+    info(f"Completed tts message generation at: {path} with content: {text}",__name__)
+    
+def play(queue:Queue,path:str,no_delete:bool=False):
     """
     Starts playing an audio clip
     
@@ -424,28 +471,44 @@ def play(queue:Queue,path:str):
             The queue to allow play request to work properly
         path:
             Path to play the sound on
+        no_delete:
+            If the file should be preserved once playing is completed
     """
 
     # Log play
     info(f"Playing TTS Message at: {path}",__name__)
     
     # Play sound
-    pygame.mixer.music.load(path)
-    pygame.mixer.music.play()
+    try:
+        pygame.mixer.music.load(path)
+        pygame.mixer.music.play()
+    except:
+        
+        # Not able to load sound
+        error(f"File not found: {path}",__name__)
+        
+        # Once finished, allow queue to play another sound
+        queue.playing = False
+        queue.force_completion = False
+        pygame.mixer.music.unload()
+        return
     
     # Wait for completion
-    while pygame.mixer.music.get_busy():
+    while pygame.mixer.music.get_busy() and not queue.force_completion:
         
         time.sleep(0.1)
         
     # Unload sound
+    pygame.mixer.music.stop()
     pygame.mixer.music.unload()
     
     # Once finished, allow queue to play another sound
     queue.playing = False
+    queue.force_completion = False
     
     # Log play completion
     info(f"Completed playing TTS Message at: {path}",__name__)
     
     # Remove sound
-    os.remove(path)
+    if not no_delete:
+        os.remove(path)

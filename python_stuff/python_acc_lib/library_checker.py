@@ -140,6 +140,8 @@ def verify_lib():
     check_library("edge_tts","edge-tts","7.2.0")
     check_library("pyglet","pyglet","2.1.8")
     check_library("pygame","pygame","2.6.1")
+    check_library("pyautogui","pyautogui","0.9.54")
+    check_library("keyboard","keyboard","0.13.5")
     
     # Download libraries
     install_all()
