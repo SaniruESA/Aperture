@@ -44,7 +44,7 @@ def verify(server:Server,recv_json:dict):
     
 def queue_generate_tts(server:Server,recv_json:dict):
     """
-    Queues generation of text-to-speed
+    Queues generation of text-to-speech
     
     Arguments:
         server:
@@ -115,7 +115,10 @@ def tick(server:Server):
         server:
             Server instance
     """
-    
+    # SERVER global variable
+    global SERVER
+    SERVER = server
+
     # Receive data
     recv_data:str = server.recv()
     
