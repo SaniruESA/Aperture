@@ -7,14 +7,15 @@ import python_acc_lib
 if __name__ == "__main__":
 
     logger.set_stdout()
-    
-    python_acc_lib.verify_lib()
 
     client = server.Client()
     
     client.verify()
     info(client.recv(),__name__)
-    send = {"type":"generate_tts","content":"Hello, World!"}
+    send = {"type":"add_button","content":"[0,0,50,50]","name":"Button Numero Uno"}
+    client.send_json(send)
+    info(client.recv(),__name__)
+    send = {"type":"add_button","content":"[100,100,50,50]","name":"Button 2"}
     client.send_json(send)
     info(client.recv(),__name__)
     while True:

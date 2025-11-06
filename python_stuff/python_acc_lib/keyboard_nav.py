@@ -1,13 +1,19 @@
 # Import libraries
-import pygame
-from server import server_ticker
 from .logger.basic_logs import *
+import pyautogui
+from typing import Literal
+from .server import server_ticker
+from . import ui
+import pyglet
 
-# Initialize pygame
-pygame.init()
+UITypeOptions = Literal["button"]
 
 # Define queue
 class TabNavOrder():
+    
+    selectedElementIndex:int
+    selectedElement:dict
+    order:list
     
     def __init__(self):
         """
@@ -18,29 +24,42 @@ class TabNavOrder():
         """
         
         self.order = []
-        self.selectedElement = -1
+        self.selectedElementIndex = 0
+        self.selectedElement = {}
 
     # can we have a callback passed like this between languages?
-    def addUIElement(self, buttonRect: pygame.Rect, UIType: str, ariaText: str, enterCallback):
-        self.order.append({"rect": buttonRect, "type": UIType, "ariaText": ariaText, "callback": enterCallback})
+    def addUIElement(self, buttonRect: list, UIType: UITypeOptions, ariaText: str):
+        self.order.append({"rect": buttonRect, "type": UIType, "ariaText": ariaText})
 
         info(f"Added UI Element for {ariaText}", __name__)
 
-    def handleTabPress(self):
+    def handleTabPress(self,shift:bool=False):
+        
+        if len(self.order) == 0:
+            
+            return
+        
         # Track which UI element is being tabbed
-        self.selectedElement = (self.selectedElement + 1) % len(self.order)
+        self.selectedElementIndex = (self.selectedElementIndex + (-1 if shift else 1)) % len(self.order)
+        self.selectedElement = self.order[self.selectedElementIndex]
 
-        # Here add implmeentation from the TTS library to add this narration to the queue
-        server_ticker.queue_generate_tts(server=server_ticker.SERVER, json={"content": self.selectedElement["ariaText"]})
+        # Say the text
+        server_ticker.SERVER.tts_queue.queue_play(f".\\temp\\output_{self.selectedElement['ariaText']}.mp3",-1,self.selectedElement["ariaText"],True,True)
+        
+        # Update UI Rectangle
+        ui.is_button_highlighted = True
+        ui.button_highlight_coords = self.selectedElement["rect"]
 
-        # IF both mouse movement narration and tab narration are happening at the same time,
-        # prioritize tab narration
-
-        # Maybe make a class or file to handle UI element narration
-
-        info(f"Switched tab focus to element named {self.order[self.selectedElement]["ariaText"]}", __name__)
+        # Log text was created
+        info(f"Switched tab focus to element named {self.selectedElement["ariaText"]}", __name__)
         
     def handleEnterPress(self):
-        # HOw the heck is this gonna work
-        self.order[self.selectedElement]["callback"]()
 
+        # Log button was pressed
+        info(f"Pressed button {self.selectedElement["ariaText"]}",__name__)
+        
+        # Press the button and return mouse
+        mousePos = pyautogui.position()
+        rect:list = self.selectedElement["rect"]
+        pyautogui.click(rect[0]+rect[2]/2,rect[1]+rect[3]/2)
+        pyautogui.position(mousePos.x,mousePos.y)

@@ -9,6 +9,4 @@ serv = server.Server()
 serv.accept()
 
 serv.tick_threaded()
-
-while True:
-    serv.tick_server()
+serv.tick_pyglet()

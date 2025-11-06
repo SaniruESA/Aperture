@@ -8,6 +8,8 @@ from ..logger.basic_logs import *
 import random
 import json
 from ..tts import Queue
+import keyboard
+import pyglet
 
 possible_server_types = Literal[socket.SOCK_STREAM,socket.SOCK_DGRAM] # Possible socket types
 DEFAULT_COMPUTER_IP = socket.gethostbyname(socket.gethostname()) # The machine ip of the running system
@@ -68,6 +70,14 @@ class Server:
         
         # Generate text-to-speech queue
         self.tts_queue = Queue()
+        
+        # Generate a keyboard tab navigation
+        self.keyboardtab = keyboard_nav.TabNavOrder()
+        
+        # Add keyboard button shortcuts
+        keyboard.add_hotkey("tab",self.keyboardtab.handleTabPress,(False,))
+        keyboard.add_hotkey("shift+tab",self.keyboardtab.handleTabPress,(True,))
+        keyboard.add_hotkey("enter",self.keyboardtab.handleEnterPress)
         
         # Clear previous tts files
         self.tts_queue.wipe_dir()
@@ -151,6 +161,9 @@ class Server:
             # Kill server
             self.is_alive = False
             
+            # End pyglet
+            pyglet.app.exit()
+            
             # Exit program
             quit()
             
@@ -161,7 +174,7 @@ class Server:
     
     def tick_server(self) -> None:
         """
-        Tick server loop to receive, interpret, and return client requests 
+        Tick server loop to receive, interpret, and return client requests (this prevents the UI overlay from working)
         """
         
         # Tick server
@@ -176,6 +189,16 @@ class Server:
         
         # Start threaded server
         server_ticker.start_threaded_server(self)
+        
+    def tick_pyglet(self) -> None:
+        """
+        Starts the pyglet UI server
+        
+        THIS WILL MAKE ALL OTHER CODE BENEATH NOT RUN
+        """
+        
+        # Start pyglet
+        server_ticker.start_pyglet_server(server=self)
 
 class Client:
     
@@ -336,5 +359,6 @@ class Client:
         # Print output message        
         warn("Client closed",__name__)
         
-# Import ticker method and prevent circular imports
+# Import ticker method and keyboard nav to prevent circular imports
 from . import server_ticker as server_ticker
+from .. import keyboard_nav
