@@ -34,6 +34,7 @@ help - Help menu
 exit - Shutdown server
 generate_tts - Send a generation request to queue
 add_button - Adds a button for tab navigation
+update_window - Updates window position
 """
 
 # Help menu for verify
@@ -91,6 +92,14 @@ name: Button name
 This will add a button for tab navigation to select
 """
 
+UPDATE_WINDOW = """
+Update Window
+type: update_window
+content: window position as a rect [x,y,w,h]
+
+Updates the position of the window and button placement
+"""
+
 def format_json(item:str):
     """
     Formats the item in a json packet
@@ -119,6 +128,11 @@ def help_menu(server:Server,recv_json:dict):
         
         match recv_json["content"]:
             
+            # Empty menu
+            case "":
+                
+                server.send(format_json(HELP_MENU))
+            
             # Help menu
             case "help":
                 
@@ -143,6 +157,11 @@ def help_menu(server:Server,recv_json:dict):
             case "add_button":
                 
                 server.send(format_json(HELP_ADD_BUTTON))
+            
+            # Updating Window Position
+            case "update_window":
+                
+                server.send(format_json(UPDATE_WINDOW))
                 
             # Other
             case _:

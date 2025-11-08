@@ -226,6 +226,11 @@ class Queue():
                 self.remove_generate(queue_item[0],queue_indexed)
                 return
         
+        # Delete queue priority 99 if applicable
+        if 99 in self.generate_queue:
+            
+            self.generate_queue.pop(99)
+            
         # Start generating
         self.generating = True
         threading.Thread(target=self._generate,args=queue_item[:-1]).start()
@@ -254,6 +259,11 @@ class Queue():
         if queue_found is None:
             return
         
+        # Delete queue priority 99 if applicable
+        if 99 in self.play_queue:
+            
+            self.play_queue.pop(99)
+            
         # Start playing
         self.playing = True
         threading.Thread(target=self._play,args=queue_found).start()
