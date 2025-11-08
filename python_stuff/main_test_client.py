@@ -1,4 +1,5 @@
 import python_acc_lib.server as server
+from python_acc_lib.server import easy_client
 import python_acc_lib.logger as logger
 from python_acc_lib.logger.basic_logs import *
 import time
@@ -8,15 +9,10 @@ if __name__ == "__main__":
 
     logger.set_stdout()
 
-    client = server.Client()
+    client = easy_client.generate_client()
     
-    client.verify()
-    info(client.recv(),__name__)
-    send = {"type":"add_button","content":"[0,0,50,50]","name":"Button Numero Uno"}
-    client.send_json(send)
-    info(client.recv(),__name__)
-    send = {"type":"add_button","content":"[100,100,50,50]","name":"Button 2"}
-    client.send_json(send)
-    info(client.recv(),__name__)
+    easy_client.add_button([0,0,50,50],"Button Numero Uno")
+    easy_client.add_button([500,500,100,50],"Button 2")
+    
     while True:
         time.sleep(0.1)

@@ -141,11 +141,15 @@ def _tick_server_threaded(server:Server):
     Tick threaded server
     """
     
+    # Notify that thread was started
     info("Started server ticking",__name__)
     
     # Tick forever
     while server.is_alive:
         tick(server)
+        
+        # Notify that thread was ended
+    info("Ended server ticking",__name__)
     
     
 def start_threaded_server(server:Server):
@@ -272,6 +276,18 @@ def tick(server:Server):
             
             # Add a button to tab nav
             add_button(server,recv_json)
+            
+        # Updating window
+        case "update_window":
+            
+            # Change window position
+            x,y,w,h = json.loads(recv_json["content"])
+            info(f"Updating window position x: {x} y: {y} w: {w} h: {h}",__name__)
+            WINDOW.set_location(x,y)
+            WINDOW.set_size(w,h)
+            
+            # Send back
+            server.send('{"type":"update_window","content":"Window updated"}')
         
         # Unknown type
         case _:

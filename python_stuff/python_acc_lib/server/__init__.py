@@ -87,6 +87,9 @@ class Server:
         Accepts the client connection and starts verification
         """
         
+        # Notify that connection is wait
+        info("SERVER IS READY",__name__)
+        
         # Accept connection
         self.client_conn,self.client_addr = self.server_socket.accept()
         
@@ -303,6 +306,21 @@ class Client:
         # Dump and send
         self.send(json.dumps(data))
         
+    def send_and_recv(self,data:dict) -> str:
+        """
+        Sends json to server with automatic length header and waits for server response
+        
+        Arguments:
+            data:
+                Data to send to server
+        """
+        
+        # Send json data
+        self.send_json(data)
+        
+        # Recv server data
+        return self.recv()
+        
     def recv(self,bufsize:int=1024):
         """
         Receives data from server
@@ -362,3 +380,19 @@ class Client:
 # Import ticker method and keyboard nav to prevent circular imports
 from . import server_ticker as server_ticker
 from .. import keyboard_nav
+
+# Method to easily start the server
+def fast_start(port:int=8080,ip:str=DEFAULT_COMPUTER_IP):
+    """
+    Generates a server, waits for client accept, and starts ticking
+    """
+    
+    # Generate server
+    new_server = Server(port=port,ip=ip)
+    
+    # Accept client
+    new_server.accept()
+
+    # Start threading
+    new_server.tick_threaded()
+    new_server.tick_pyglet()
