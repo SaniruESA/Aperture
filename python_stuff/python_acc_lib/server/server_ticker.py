@@ -131,6 +131,7 @@ def _server_threaded(server:Server):
         # Run tts generation and play check
         server.tts_queue.check_generate()
         server.tts_queue.check_play()
+        server.keyboardtab.hoverTTS()
         
     # Notify that thread was ended
     info("Server thread ended",__name__)
