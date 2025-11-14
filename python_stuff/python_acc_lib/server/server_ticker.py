@@ -10,6 +10,7 @@ import threading
 import asyncio
 import pyglet
 from .. import ui
+from .. import settings
 
 BLANK_PACKET_MAXIMUM:int = 100 # Number of blank packets received before server will automatically shut off
 BLANK_PACKET_COUNT:int = 0 # Number of blank packets received
@@ -169,7 +170,7 @@ def start_threaded_server(server:Server):
     SERVER_ASYNC_THREAD = threading.Thread(target=_server_threaded,args=(server,))
     SERVER_ASYNC_THREAD.start()
     
-    WINDOW = ui.Window()
+    WINDOW = ui.Window(settings.DEFAULT_WINDOW_WIDTH,settings.DEFAULT_WINDOW_HEIGHT)
     TICK_ASYNC_THREAD = threading.Thread(target=_tick_server_threaded,args=(server,))
     TICK_ASYNC_THREAD.start()
     
@@ -283,8 +284,10 @@ def tick(server:Server):
             # Change window position
             x,y,w,h = json.loads(recv_json["content"])
             info(f"Updating window position x: {x} y: {y} w: {w} h: {h}",__name__)
-            WINDOW.set_location(x,y)
-            WINDOW.set_size(w,h)
+            
+            # Start update
+            ui.update_window = True
+            ui.window_stats = [x,y,w,h]
             
             # Send back
             server.send('{"type":"update_window","content":"Window updated"}')

@@ -81,3 +81,17 @@ def add_button(position:list[int,int,int,int],name:str) -> str:
     info(f"Adding button at: {position} with text: {name}",__name__)
     
     return CLIENT.send_and_recv({"type":"add_button","content":json.dumps(position),"name":name})
+
+def update_window(position:list[int,int,int,int]) -> str:
+    """
+    Updates the position of the window and button placement
+    It is ideal to do this on window generation and every window update in order to keep objects correctly placed
+    
+    Arguments:
+        position: 
+            The window position as a rect [x,y,w,h]
+    """
+    
+    info("Setting window position to: {position}",__name__)
+    
+    return CLIENT.send_and_recv({"type":"update_window","content":json.dumps(position)})

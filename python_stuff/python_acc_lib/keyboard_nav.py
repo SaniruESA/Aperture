@@ -9,7 +9,21 @@ UITypeOptions = Literal["button", "text"]
 
 # Check if a point and rect are colliding
 def rect_point_collision(rectBounds: list, point: list):
-    return abs(point[0] - rectBounds[0]) <= abs(rectBounds[2]) and abs(point[1] - rectBounds[1]) <= abs(rectBounds[3])
+    x,y,w,h = rectBounds
+    mx,my = point
+    return mx > x and my > y and mx < x + w and my < y + h
+
+win_x:int = 0 # Window x pos
+win_y:int = 0 # Window y pos
+
+# Get window position
+def get_window():
+    """
+    Gets the current position of the pyglet window
+    """
+    global win_x, win_y
+    
+    win_x, win_y, _, _ = ui.window_stats
 
 # Define queue
 class TabNavOrder():
@@ -61,7 +75,10 @@ class TabNavOrder():
         info(f"Switched tab focus to element named {self.tabbedElement["ariaText"]}", __name__)
         
     def handleEnterPress(self):
-
+        
+        # Get window pos
+        get_window()
+        
         # Don't do anything if no element is tab-selected
         if self.tabbedElement == None:
             return
@@ -72,16 +89,28 @@ class TabNavOrder():
         # Press the button and return mouse to original location
         mousePos = pyautogui.position()
         rect:list = self.tabbedElement["rect"]
-        pyautogui.click(rect[0]+rect[2]/2,rect[1]+rect[3]/2)
+        pyautogui.click(rect[0]+rect[2]/2+win_x,rect[1]+rect[3]/2+win_y)
         pyautogui.position(mousePos.x,mousePos.y)
 
     def hoverTTS(self):
+        
+        # Get window pos
+        get_window()
+        
+        # Get mouse pos
         mousePos = pyautogui.position()
+        
+        # Shift mouse pos
+        mousePos = [mousePos[0]-win_x,mousePos[1]-win_y]
+        
+        # Fix elements
         flattenedUIElements = [item for row in self.order.values() for item in row]
         foundHoveredElement = False
 
         # Check collision between mouse and UI elements
         for UIElement in flattenedUIElements:
+            
+            # Only do if hovered
             if rect_point_collision(UIElement["rect"], mousePos):
                 foundHoveredElement = True
 

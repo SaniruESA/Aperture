@@ -98,6 +98,7 @@ type: update_window
 content: window position as a rect [x,y,w,h]
 
 Updates the position of the window and button placement
+It is ideal to do this on window generation and every window update in order to keep objects correctly placed
 """
 
 def format_json(item:str):
