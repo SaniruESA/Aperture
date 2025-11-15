@@ -11,6 +11,7 @@ import asyncio
 import pyglet
 from .. import ui
 from .. import settings
+from ..ui import popup
 
 BLANK_PACKET_MAXIMUM:int = 100 # Number of blank packets received before server will automatically shut off
 BLANK_PACKET_COUNT:int = 0 # Number of blank packets received
@@ -291,6 +292,15 @@ def tick(server:Server):
             
             # Send back
             server.send('{"type":"update_window","content":"Window updated"}')
+        
+        # Adding a popup
+        case "add_popup":
+            
+            # Add popup
+            popup.add_popup({"text":recv_json["content"]})
+            
+            # Send back
+            server.send('{"type":"add_popup","content":"Added popup"}')
         
         # Unknown type
         case _:

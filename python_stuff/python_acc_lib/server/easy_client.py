@@ -92,6 +92,19 @@ def update_window(position:list[int,int,int,int]) -> str:
             The window position as a rect [x,y,w,h]
     """
     
-    info("Setting window position to: {position}",__name__)
+    info(f"Setting window position to: {position}",__name__)
     
     return CLIENT.send_and_recv({"type":"update_window","content":json.dumps(position)})
+
+def add_popup(text:str) -> str:
+    """
+    Adds a popup to the screen with tts as well
+    
+    Arguments:
+        text:
+            The text of the popup
+    """
+    
+    info(f"Adding popup: {text}",__name__)
+    
+    return CLIENT.send_and_recv({"type":"add_popup","content":text})
