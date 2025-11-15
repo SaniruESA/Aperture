@@ -1,6 +1,7 @@
 import pyglet
 from typing import Literal
 from . import popup
+import time
 
 class Window(pyglet.window.Window):
     def __init__(self,width,height):
@@ -26,6 +27,9 @@ class Window(pyglet.window.Window):
         
         # Save window stats
         window_stats = [0,0,width,height]
+        
+        # Reset popup timer
+        popup.start_time = time.time()
 
     def on_draw(self):
         

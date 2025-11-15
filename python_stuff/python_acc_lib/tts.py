@@ -6,6 +6,10 @@ import pygame
 import edge_tts
 import time
 from .logger.basic_logs import *
+from . import settings
+
+# Get settings
+TTS_DEFAULT_VOICE = settings.TTS_VOICE
 
 # Initialize pygame
 pygame.init()
@@ -38,7 +42,7 @@ class Queue():
         self.play_queue:dict[str,list[tuple]] = {}
         self.playing = False
     
-    def _generate(self,text:str,voice:str="en-US-EmmaMultilingualNeural",volume:int=0,rate:int=0,pitch:int=0,priority:int=0):
+    def _generate(self,text:str,voice:str=TTS_DEFAULT_VOICE,volume:int=0,rate:int=0,pitch:int=0,priority:int=0):
         """
         Begins the generation of an item in queue
         """
@@ -67,7 +71,7 @@ class Queue():
         self.remove_play(path,priority)
         play(self,path,no_delete)
     
-    def generate(self,text:str,voice:str="en-US-EmmaMultilingualNeural",volume:int=0,rate:int=0,pitch:int=0,priority:int=0,timeout:int=None):
+    def generate(self,text:str,voice:str=TTS_DEFAULT_VOICE,volume:int=0,rate:int=0,pitch:int=0,priority:int=0,timeout:int=None):
         """
         Request a generate
         
@@ -131,7 +135,7 @@ class Queue():
         queue[priority].append((path,priority,text,ready,no_delete))
         
         # Log play message
-        info(f"Play request request added for TTS Message with content: {text}",__name__)
+        info(f"Play request added for TTS Message with content: {text}",__name__)
     
     def ready_play(self,path:str,priority:int=0):
         """
@@ -154,10 +158,10 @@ class Queue():
             if item[0] == path:
             
                 # Set the ready to true
-                queue[priority][n] = tuple(list(item)[:-1]+[True,])
+                queue[priority][n] = tuple(list(item)[:-2]+[True,]+list(item)[-1:])
                 
         # Log ready message
-        info(f"Play request request added for TTS Message with path: {path}",__name__)
+        info(f"Play request readied for TTS Message with path: {path}",__name__)
     
     def check_played(self,text:str,priority:int=0):
         """
@@ -394,7 +398,7 @@ class Queue():
         # Log that all files were clear
         info("Cleared generated TTS files",__name__)
 
-async def generate(queue:Queue,text:str,voice:str="en-US-EmmaMultilingualNeural",volume:int=0,rate:int=0,pitch:int=0,priority:int=0,path:str=".\\tts\\output.mp3"):
+async def generate(queue:Queue,text:str,voice:str=TTS_DEFAULT_VOICE,volume:int=0,rate:int=0,pitch:int=0,priority:int=0,path:str=".\\tts\\output.mp3"):
     """
     Request immediate generation from edge servers
         
@@ -431,13 +435,16 @@ async def generate(queue:Queue,text:str,voice:str="en-US-EmmaMultilingualNeural"
     # Allow another item to be queued
     queue.generating = False
     
+    # Notify readying
+    info(f"Readying play request for path: {path}",__name__)
+    
     # Allow play request to play
     queue.ready_play(path,priority)
     
     # Log that generation was completed
     info(f"Completed tts message generation at: {path} with content: {text}",__name__)
     
-async def generate_no_play(text:str,voice:str="en-US-EmmaMultilingualNeural",volume:int=0,rate:int=0,pitch:int=0,path:str=".\\tts\\output.mp3"):
+async def generate_no_play(text:str,voice:str=TTS_DEFAULT_VOICE,volume:int=0,rate:int=0,pitch:int=0,path:str=".\\tts\\output.mp3"):
     """
     Request immediate generation from edge servers and not play
         

@@ -92,13 +92,21 @@ name: Button name
 This will add a button for tab navigation to select
 """
 
-UPDATE_WINDOW = """
+HELP_UPDATE_WINDOW = """
 Update Window
 type: update_window
 content: window position as a rect [x,y,w,h]
 
 Updates the position of the window and button placement
 It is ideal to do this on window generation and every window update in order to keep objects correctly placed
+"""
+
+HELP_ADD_POPUP = """
+Add Popup
+type: add_popup
+content: popup text
+
+Adds a popup to the screen with tts as well
 """
 
 def format_json(item:str):
@@ -162,7 +170,12 @@ def help_menu(server:Server,recv_json:dict):
             # Updating Window Position
             case "update_window":
                 
-                server.send(format_json(UPDATE_WINDOW))
+                server.send(format_json(HELP_UPDATE_WINDOW))
+                
+            # Adding a popup
+            case "add_popup":
+                
+                server.send(format_json(HELP_ADD_POPUP))
                 
             # Other
             case _:
