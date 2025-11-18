@@ -61,7 +61,12 @@ class TabNavOrder():
             return
         
         # Track which UI element is being tabbed
-        self.tabbedElementIndex = (self.tabbedElementIndex + (-1 if shift else 1)) % len(self.order["button"])
+        if ui.is_button_highlighted:
+            self.tabbedElementIndex = (self.tabbedElementIndex + (-1 if shift else 1)) % len(self.order["button"])
+        else:
+            # Start at the first if the user isn't highlighting
+            self.tabbedElementIndex = 0
+            
         self.tabbedElement = self.order["button"][self.tabbedElementIndex]
 
         # Say the text

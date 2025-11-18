@@ -114,7 +114,38 @@ def add_button(server:Server,recv_json:dict):
     # Return back
     server.send('{"type":"add_button","content":"Button has been added"}')
     
+def add_missing(base:dict,example:dict):
+    """
+    Adds any missing keys or values to base from example
     
+    Arguments:
+        base:
+            The base dictionary (this will be favored for values)
+        example:
+            The example diction (this will be pulled for values)
+    """
+    
+    for key in example:
+        
+        # Substitute in
+        if key not in base:
+            
+            base[key] = example[key]
+    
+    # Return fixed
+    return base
+
+def add_popup(server:Server, recv_json:dict):
+    
+    # Add missing keys
+    recv_json = add_missing(recv_json,{"text-color":(0,0,0),"background-color":settings.POPUP_DEFAULT_COLOR,"position":None})
+    
+    # Add popup
+    popup.add_popup({"text":recv_json["content"],"text-color":recv_json["text-color"],"background-color":recv_json["background-color"],"position":recv_json["position"]})
+            
+    # Send back
+    server.send('{"type":"add_popup","content":"Added popup"}')
+
 def _server_threaded(server:Server):
     """
     Thread of the server
@@ -296,11 +327,7 @@ def tick(server:Server):
         # Adding a popup
         case "add_popup":
             
-            # Add popup
-            popup.add_popup({"text":recv_json["content"]})
-            
-            # Send back
-            server.send('{"type":"add_popup","content":"Added popup"}')
+            add_popup(server,recv_json)
         
         # Unknown type
         case _:

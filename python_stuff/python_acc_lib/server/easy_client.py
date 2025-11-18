@@ -5,6 +5,7 @@ All functions will return the servers response
 from .. import server
 from ..logger.basic_logs import *
 import json
+from .. import settings
 
 CLIENT:server.Client = None
 
@@ -96,15 +97,21 @@ def update_window(position:list[int,int,int,int]) -> str:
     
     return CLIENT.send_and_recv({"type":"update_window","content":json.dumps(position)})
 
-def add_popup(text:str) -> str:
+def add_popup(text:str,background_color:tuple[int,int,int]=settings.POPUP_DEFAULT_COLOR,text_color:tuple[int,int,int]=(0,0,0),position:tuple[int,int]=None) -> str:
     """
     Adds a popup to the screen with tts as well
     
     Arguments:
         text:
             The text of the popup
+        background_color:
+            The background color of the popup
+        text_color:
+            The text color of the popup
+        position:
+            The bottom left position of the popup, or none if it is in the popups list
     """
     
     info(f"Adding popup: {text}",__name__)
     
-    return CLIENT.send_and_recv({"type":"add_popup","content":text})
+    return CLIENT.send_and_recv({"type":"add_popup","content":text,"text-color":text_color,"background-color":background_color,"position":position})

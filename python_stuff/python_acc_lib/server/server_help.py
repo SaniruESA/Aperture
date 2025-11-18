@@ -105,8 +105,13 @@ HELP_ADD_POPUP = """
 Add Popup
 type: add_popup
 content: popup text
+Optional arguments
+text-color: color of the text (r,g,b)
+background-color: color of the background (r,g,b)
+position: the bottom left position of the popup, or none (x,y)
 
 Adds a popup to the screen with tts as well
+The rectangle around it is based on the length of the text, \\n is supported
 """
 
 def format_json(item:str):
