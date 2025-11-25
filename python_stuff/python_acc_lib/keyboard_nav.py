@@ -49,6 +49,9 @@ class TabNavOrder():
         self.tabbedElement = None
         self.hoveredElement = {"rect": None, "ariaText": None}
 
+    def getUIElements(self):
+        return self.order
+
     # can we have a callback passed like this between languages?
     def addUIElement(self, buttonRect: list, UIType: UITypeOptions, ariaText: str):
         self.order[UIType].append({"rect": buttonRect, "ariaText": ariaText})
