@@ -37,7 +37,7 @@ public class WhisperManager
 
         try
         {
-            WF = WhisperFactory.FromPath("C:\\Users\\nicfa\\Downloads\\ggml-base.bin");
+            WF = WhisperFactory.FromPath(Path.GetDirectoryName(OfPath()) + "\\" + modelPath);
         }
         catch (WhisperModelLoadException)
         {
@@ -47,8 +47,11 @@ public class WhisperManager
             return;
         }
 
-        Debug.WriteLine($"Model {modelPath} loaded sucessfully");
+        Debug.WriteLine($"Model {Path.GetDirectoryName(OfPath()) + "\\" +  modelPath} loaded sucessfully");
     }
+
+    static string OfPath([System.Runtime.CompilerServices.CallerFilePath] string path = "")
+        => path;
 
     public static async Task Transcribe(Stream audioData, CancellationToken ct = default)
     {
