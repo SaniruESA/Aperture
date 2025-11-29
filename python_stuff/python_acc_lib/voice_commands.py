@@ -1,12 +1,11 @@
 from RealtimeSTT import AudioToTextRecorder
 import json
-from keyboard_nav import TabNavOrder
+from .keyboard_nav import TabNavOrder
 import pyautogui
 from . import ui
 import re
-
-with open("python_stuff/python_acc_lib/intentions.json", "r") as file:
-    intention_json = json.load(file)
+from .server import server_ticker
+from .voice_command_intentions import intention_json
 
 # AUDIO_RECORDER = AudioToTextRecorder(language="en")
 
@@ -21,7 +20,7 @@ with open("python_stuff/python_acc_lib/intentions.json", "r") as file:
 # Functions to actually carry out the user's intention
 def press_button(page_name: str): # this one doubles for pressing a button AND moving pages
     # Bad code incoming (fix / refactor later)
-    all_buttons = TabNavOrder.getUIElements()["button"]
+    all_buttons = server_ticker.SERVER.keyboardtab.getUIElements()["button"]
 
     page_button = [x for x in all_buttons if page_name in x["ariaText"]]
 

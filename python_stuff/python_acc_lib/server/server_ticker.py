@@ -12,13 +12,14 @@ import pyglet
 from .. import ui
 from .. import settings
 from ..ui import popup
+from .. import voice_commands
 
 BLANK_PACKET_MAXIMUM:int = 100 # Number of blank packets received before server will automatically shut off
 BLANK_PACKET_COUNT:int = 0 # Number of blank packets received
 SERVER_ASYNC_THREAD:threading.Thread = None # Async thread for server
 PYGLET_ASYNC_THREAD:threading.Thread = None # Async thread for pyglet
 SERVER:Server # Last used server for tick
-
+    
 def verify(server:Server,recv_json:dict):
     """
     Verify protocol for server
@@ -184,6 +185,45 @@ def _tick_server_threaded(server:Server):
         # Notify that thread was ended
     info("Ended server ticking",__name__)
     
+def _voice_command_server_threaded(server:Server):
+    """
+    Tick voice command server
+    """
+    # Preprocess listening text
+    path = f".\\temp\\voice_assistant_listening.mp3"
+    threading.Thread(target=generate_button_tts,args=(settings.VOICE_ACTIVATION_CONFIRMATION,path)).start()
+    
+    # Notify that thread was started
+    info("Started server voice commands",__name__)
+    
+    # Tick forever
+    while server.is_alive:
+        
+        # Get what user said
+        said_text = server.recorder.text()
+        
+        # Log what user said
+        info("User Said:"+said_text,__name__)
+        
+        # Check if keyword
+        if settings.VOICE_ACTIVATION_KEYWORD in said_text:
+            
+            # Log what user said
+            info("Voice assistant activated",__name__)
+        
+            # Say that AI is listening
+            server.tts_queue.queue_play(f".\\temp\\voice_assistant_listening.mp3",-1,settings.VOICE_ACTIVATION_CONFIRMATION,True,True)
+            
+            # Listen to user text and pipe to AI
+            said_text = server.recorder.text()
+            voice_commands.interpret_intentions(said_text)
+            
+            # Log what user said
+            info("User said to voice assistant:"+said_text,__name__)
+        
+    # Notify that thread was ended
+    info("Ended server voice commands",__name__)
+    
     
 def start_threaded_server(server:Server):
     """
@@ -193,7 +233,7 @@ def start_threaded_server(server:Server):
         server:
             Server instance
     """
-    global SERVER_ASYNC_THREAD,SERVER_ASYNC_RUNNING,PYGLET_ASYNC_THREAD,WINDOW
+    global SERVER_ASYNC_THREAD,SERVER_ASYNC_RUNNING,PYGLET_ASYNC_THREAD,WINDOW,VOICE_ASYNC_THREAD
     
     # Set running to true to allow thread to run
     SERVER_ASYNC_RUNNING = True
@@ -201,6 +241,9 @@ def start_threaded_server(server:Server):
     # Generate and start thread
     SERVER_ASYNC_THREAD = threading.Thread(target=_server_threaded,args=(server,))
     SERVER_ASYNC_THREAD.start()
+    
+    VOICE_ASYNC_THREAD = threading.Thread(target=_voice_command_server_threaded,args=(server,))
+    VOICE_ASYNC_THREAD.start()
     
     WINDOW = ui.Window(settings.DEFAULT_WINDOW_WIDTH,settings.DEFAULT_WINDOW_HEIGHT)
     TICK_ASYNC_THREAD = threading.Thread(target=_tick_server_threaded,args=(server,))

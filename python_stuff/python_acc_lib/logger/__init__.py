@@ -3,11 +3,13 @@ Live logging to file or stdout with timestamps
 """
 
 from typing import Literal
+from io import TextIOWrapper
 import sys
 import time
 
-OPEN_LOGGER = open("log.txt","w") # TextIOWrapper to write logs to (can be file or stdout)
+OPEN_LOGGER:TextIOWrapper = open("log.txt","w") # TextIOWrapper to write logs to (can be file or stdout)
 IS_STDOUT:bool = False # Toggle for ANSI color sequences (sequences are only used in stdout)
+PATH:str = "log.txt" # The most recent path that has been set
     
 def designate_file(path:str):
     """
@@ -18,7 +20,10 @@ def designate_file(path:str):
             The path to set the logger to
     """
     
-    global OPEN_LOGGER,IS_STDOUT
+    global OPEN_LOGGER,IS_STDOUT,PATH
+    
+    # Set path
+    PATH = path
     
     # Open new path for writing
     OPEN_LOGGER = open(path,"w")
@@ -34,6 +39,25 @@ def set_stdout():
     OPEN_LOGGER = sys.stdout
     IS_STDOUT = True
 
+def clear():
+    """
+    Empties the current logging file or clears stdout
+    """
+    global OPEN_LOGGER
+    
+    # Use STDOUT clear code
+    if IS_STDOUT:
+        
+        OPEN_LOGGER.write("\x1b[2J\x1b[H")
+
+        # Flush log
+        OPEN_LOGGER.flush()
+        
+        return
+    
+    OPEN_LOGGER = open(PATH,"w")
+    OPEN_LOGGER.flush()
+    
 # Levels of writes to log
 level = Literal["INFO","ERROR","WARN","DEBUG","CRITICAL"]
 
