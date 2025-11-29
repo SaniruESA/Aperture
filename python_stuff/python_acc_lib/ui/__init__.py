@@ -17,7 +17,7 @@ class Window(pyglet.window.Window):
         global window_stats
         
         # Generate window
-        pyglet.window.Window.__init__(self,visible=True,width=width,height=height,style=Window.WINDOW_STYLE_OVERLAY,caption="Enablr Overlay")
+        pyglet.window.Window.__init__(self,visible=True,width=width,height=height,style=Window.WINDOW_STYLE_OVERLAY,caption="Aperture Overlay")
         
         # Set window position
         self.set_location(0,0)

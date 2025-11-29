@@ -5,7 +5,7 @@ import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline
 
 # Set the model name via env var for easy testing/fallbacks
-MODEL_NAME = os.environ.get("LLAMA_MODEL_NAME", "bigcode/starcoder2-3b")
+MODEL_NAME = "Qwen/Qwen2.5-Coder-0.5B-Instruct"
 
 # Make this a universal value across all files later (its repeated in keyborad_nav)
 UITypes = ["button", "text"]
@@ -31,13 +31,16 @@ def get_pipe():
 
     try:
         # Prefer GPU if available; otherwise use CPU
+        # Qwen-family models on Hugging Face often require `trust_remote_code=True`
+        # and benefit from explicit dtype settings when using CUDA
         if torch.cuda.is_available():
-            # Let transformers/accelerate place layers automatically
-            tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
+            # Let transformers/accelerate place layers automatically and use fp16 on GPU
+            tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME, trust_remote_code=True, use_fast=False)
             model = AutoModelForCausalLM.from_pretrained(
                 MODEL_NAME,
+                trust_remote_code=True,
                 device_map="auto",
-                dtype="auto",
+                torch_dtype=torch.float16,
                 low_cpu_mem_usage=True,
             )
             _pipe = pipeline(
@@ -49,16 +52,18 @@ def get_pipe():
             )
         else:
             # Force CPU to avoid driver/CUDA issues on machines without a proper GPU setup
-            tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
+            # Load with trust_remote_code so custom model/tokenizer classes are available
+            tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME, trust_remote_code=True, use_fast=False)
             model = AutoModelForCausalLM.from_pretrained(
                 MODEL_NAME,
+                trust_remote_code=True,
                 device_map={"": "cpu"},
+                low_cpu_mem_usage=True,
             )
             _pipe = pipeline(
                 "text-generation",
                 model=model,
                 tokenizer=tokenizer,
-                device=-1,
                 max_new_tokens=800,
                 temperature=0.2,
             )
@@ -68,6 +73,8 @@ def get_pipe():
         # Provide a readable error and re-raise so callers can decide what to do.
         print("Failed to create model pipeline:")
         traceback.print_exc()
+        print("Hint: For Qwen models you may need internet access, the latest `transformers`, and `trust_remote_code=True`.\n"
+              "On GPU, ensure CUDA drivers are installed; on CPU consider using a smaller model or enable swap if memory is low.")
         raise
 
 def edit_code(filepath: str, output_path: str = None):
