@@ -135,6 +135,6 @@ WINDOW_PADDING = settings.POPUP_WINDOW_PADDING
 PADDING = settings.POPUP_PADDING
 TEXT_PADDING = settings.POPUP_TEXT_PADDING
 POPUP_MAX_TIME = settings.POPUP_MAX_TIME
-popups:list[dict] = [{"text":"This program is using Enablr","time":0,"text-color":(0,0,0),"background-color":(255,255,255),"position":None}]
+popups:list[dict] = [{"text":"This program is using Aperture","time":0,"text-color":(0,0,0),"background-color":(255,255,255),"position":None}]
 LABELS:list = [] # Holds labels and outline rectangles so python doesn't delete them
 start_time = time.time()
