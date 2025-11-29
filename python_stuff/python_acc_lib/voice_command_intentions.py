@@ -1,4 +1,7 @@
-[
+"""
+Stores voice command intentions (since python is a lot better at loading python files than normal files)
+"""
+intention_json = [
     {
         "intention_type": "move_screens",
         "triggers": [

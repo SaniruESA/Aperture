@@ -10,6 +10,8 @@ import json
 from ..tts import Queue
 import keyboard
 import pyglet
+from RealtimeSTT import AudioToTextRecorder
+from .. import settings
 
 possible_server_types = Literal[socket.SOCK_STREAM,socket.SOCK_DGRAM] # Possible socket types
 DEFAULT_COMPUTER_IP = socket.gethostbyname(socket.gethostname()) # The machine ip of the running system
@@ -37,6 +39,7 @@ class Server:
     client_verified:bool = False
     tts_queue:Queue
     is_alive:bool = True
+    recorder:AudioToTextRecorder
     
     def __init__(self,port:int=8080,ip:str=DEFAULT_COMPUTER_IP,family:socket.AddressFamily=socket.AF_INET):
         """
@@ -53,6 +56,9 @@ class Server:
                 The address family to use (this shouldn't be changed)
         """
         
+        # Generate recorder (this restarts program)
+        self.recorder = AudioToTextRecorder(language=settings.LANGUAGE,spinner=False)
+
         # Save chosen inputs
         self.port = port
         self.ip = ip
