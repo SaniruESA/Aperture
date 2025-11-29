@@ -7,7 +7,7 @@ from .settings_types import *
 
 # STT
 LANGUAGE:Language = "en" # Language to use (Default: "en")
-VOICE_ACTIVATION_KEYWORD:str = "Iris" # The word to use in text to activate voice assistant
+VOICE_ACTIVATION_KEYWORD:str = "No" # The word to use in text to activate voice assistant
 VOICE_ACTIVATION_CONFIRMATION:str = "Yes?" # The word the voice assistant will respond back to confirm it is listening
 
 # Window

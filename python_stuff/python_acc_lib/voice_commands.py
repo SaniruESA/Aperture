@@ -22,7 +22,9 @@ def press_button(page_name: str): # this one doubles for pressing a button AND m
     # Bad code incoming (fix / refactor later)
     all_buttons = server_ticker.SERVER.keyboardtab.getUIElements()["button"]
 
-    page_button = [x for x in all_buttons if page_name in x["ariaText"]]
+    page_button = [x for x in all_buttons 
+                    if ( page_name.lower() in x["ariaText"].lower() 
+                    or x["ariaText"].lower() in page_name.lower() )]
 
     if len(page_button) == 0:
         return
@@ -35,14 +37,9 @@ def press_button(page_name: str): # this one doubles for pressing a button AND m
         print(rect[0]+rect[2]/2+win_x,rect[1]+rect[3]/2+win_y)
         pyautogui.position(mousePos.x,mousePos.y)
 
-press_button("Uno") # untested code
-
-def testing(arg):
-    print("Hi", arg)
-
 intention_to_function = {
-    "move_screens": testing,
-    "press_button": testing
+    "move_screens": press_button,
+    "press_button": press_button
 }
 
 
@@ -60,6 +57,8 @@ def get_window():
 
 # Algorithm to interpret user intention
 def interpret_intentions(command: str):
+    print("COMMAND", command)
+
     for intention in intention_json:
         for trigger in intention["triggers"]:
             res = extract_placeholder(command, trigger, placeholder="XXX")
