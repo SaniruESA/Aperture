@@ -1,5 +1,5 @@
 <Window
-    x:Class="TSA_Working_Name.MainWindow"
+    x:Class="TSA_Working_Name.InitWindow"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <Grid x:Name="RootGrid" Background="Black">
