@@ -206,7 +206,7 @@ def _voice_command_server_threaded(server:Server):
         info("User Said:"+said_text,__name__)
         
         # Check if keyword
-        if settings.VOICE_ACTIVATION_KEYWORD in said_text:
+        if settings.VOICE_ACTIVATION_KEYWORD in said_text.lower():
             
             # Log what user said
             info("Voice assistant activated",__name__)
@@ -216,7 +216,7 @@ def _voice_command_server_threaded(server:Server):
             
             # Listen to user text and pipe to AI
             said_text = server.recorder.text()
-            voice_commands.interpret_intentions(said_text)
+            voice_commands.interpret_intentions(said_text.lower())
             
             # Log what user said
             info("User said to voice assistant:"+said_text,__name__)
