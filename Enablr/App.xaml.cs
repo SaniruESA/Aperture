@@ -21,7 +21,7 @@ namespace TSA_Working_Name
 
         protected override void OnLaunched(Microsoft.UI.Xaml.LaunchActivatedEventArgs args)
         {
-            _window = new MainWindow();
+            _window = new InitWindow();
             _window.Activate();
 
             // Resize to a smaller demo size
