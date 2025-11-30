@@ -2,10 +2,14 @@ import os
 import traceback
 from typing import Optional
 import torch
-from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline
+
+print(torch.__version__)
+
+from transformers import AutoModelForCausalLM, AutoTokenizer, Trainer, pipeline, TrainingArguments
+from peft import LoraConfig, get_peft_model
 
 # Set the model name via env var for easy testing/fallbacks
-MODEL_NAME = "Qwen/Qwen2.5-Coder-0.5B-Instruct"
+MODEL_NAME = "Qwen/Qwen3-1.7B"
 
 # Make this a universal value across all files later (its repeated in keyborad_nav)
 UITypes = ["button", "text"]
@@ -18,6 +22,88 @@ file_endings = {
 
 _pipe: Optional[pipeline] = None
 
+model = AutoModelForCausalLM.from_pretrained(
+    MODEL_NAME,
+    torch_dtype="auto",
+    device_map="auto"
+)
+
+tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME, use_fast=True)
+
+def tokenize(batch):
+    return tokenizer(
+        batch["text"],
+        truncation=True,
+        padding=False,
+        max_length=2048
+    )
+
+def loraed_model(lora_path: str):
+    lora_config = LoraConfig(
+    r=16,
+    lora_alpha=32,
+    lora_dropout=0.05,
+    bias="none",
+    task_type="CAUSAL_LM"
+    )
+
+    base = AutoModelForCausalLM.from_pretrained(MODEL_NAME, device_map="auto")
+    model = get_peft_model(base, lora_config)
+    model.print_trainable_parameters()
+
+    import json
+    from datasets import Dataset
+
+    with open("code_modification/train.json", encoding="utf-8") as reader:
+        raw_data = json.load(reader)
+
+    entries = raw_data.get("train")
+    if entries is None:
+        raise RuntimeError("train.json must contain a top-level 'train' entry")
+
+    if isinstance(entries, dict):
+        entries = [entries]
+
+    def build_text(record):
+        instr = record.get("instruction:", "")
+        response = record.get("response:", "")
+        return instr + "\n" + response if instr or response else ""
+
+    dataset = Dataset.from_list([{"text": build_text(entry)} for entry in entries])
+    tokenized = dataset.map(tokenize, batched=True, remove_columns=["text"])
+    training_args = TrainingArguments(
+        output_dir="./qwen3_lora",
+        per_device_train_batch_size=2,
+        gradient_accumulation_steps=8,
+        warmup_steps=50,
+        max_steps=1000,
+        learning_rate=2e-4,
+        fp16=True,
+        logging_steps=20,
+        save_steps=200,
+        optim="adamw_torch",
+        report_to="none"
+    )
+
+    trainer = Trainer(
+        model=model,
+        args=training_args,
+        train_dataset=tokenized,
+    )
+
+    trainer.train()
+
+    trainer.save_model()
+
+    tokenizer.save_pretrained(lora_path)
+
+
+
+
+
+
+
+
 
 def get_pipe():
     """Lazily create and cache the HF text-generation pipeline.
@@ -25,6 +111,7 @@ def get_pipe():
     Avoids loading large models at import time which can crash the process
     (especially on Windows / when GPU drivers / CUDA are not configured).
     """
+    loraed_model("qwen3_lora")
     global _pipe
     if _pipe is not None:
         return _pipe
@@ -77,6 +164,13 @@ def get_pipe():
               "On GPU, ensure CUDA drivers are installed; on CPU consider using a smaller model or enable swap if memory is low.")
         raise
 
+def string_to_single_line(input_string: str) -> str:
+    """Convert a multi-line string to a single line by removing newlines and extra spaces."""
+    lines = input_string.splitlines()
+    stripped_lines = [line.strip().replace("\"", "\\\"") for line in lines if line.strip()]
+    single_line_string = '\\n'.join(stripped_lines)
+    return single_line_string
+
 def edit_code(filepath: str, output_path: str = None):
     """
     Reads UI code from `filepath`, uses a HF transformer to modify it
@@ -128,6 +222,23 @@ def edit_code(filepath: str, output_path: str = None):
         MODIFIED CODE:
     """
 
+    print(string_to_single_line("""SERVER.add_button([900, 120, 40, 40], "Close registration popup");
+SERVER.add_button([700, 300, 200, 40], "Go to Registration");
+SERVER.add_button([1000, 400, 120, 40], "View Details for first upcoming event");
+SERVER.add_button([1000, 460, 120, 40], "View Details for second upcoming event");
+SERVER.add_button([1000, 520, 120, 40], "View Details for third upcoming event");
+SERVER.add_button([100, 600, 180, 50], "View All Events");
+SERVER.add_button([300, 600, 180, 50], "My Profile");
+SERVER.add_button([500, 600, 180, 50], "Register");
+SERVER.add_button([700, 600, 180, 50], "Contact Us");
+SERVER.add_button([960, 200, 200, 50], "Add Announcement");
+SERVER.add_button([1080, 220, 40, 40], "Close Add Announcement Modal");
+SERVER.add_button([960, 300, 200, 50], "Save Announcement");
+SERVER.add_button([150, 800, 40, 40], "Calendar Day 1 Event");
+SERVER.add_button([200, 800, 40, 40], "Calendar Day 2 Event");
+SERVER.add_button([250, 800, 40, 40], "Calendar Day 3 Event"); """))
+    print(string_to_single_line(prompt))
+
     # Create/get the pipeline at runtime w/ safe lazy load
     p = get_pipe()
 
@@ -150,10 +261,11 @@ def edit_code(filepath: str, output_path: str = None):
 # For testing purposes
 if __name__ == "__main__":
     try:
-        edit_code("testing_examples/TSA_Website/page.tsx")
+        edit_code("testing_examples/TSA_Website/test.py")
     except Exception:
         print("edit_code failed during execution")
         traceback.print_exc()
+
 
 
 
