@@ -21,12 +21,13 @@ if __name__ == "__main__":
             quit()
         try:
             client = easy_client.generate_client()
+            generated = True
         except:
             time.sleep(1)
     
     # Add buttons
     easy_client.add_button([0,0,50,50],"Button Numero Uno")
-    easy_client.add_button([300, 1400, 250, 150],"Home Page")
+    easy_client.add_button([300, 540, 250, 150],"Home Page")
     
     # Change window location
     easy_client.update_window([50,50,1000,1000])
