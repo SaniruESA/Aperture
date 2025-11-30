@@ -241,7 +241,7 @@ class Client:
             self.client_socket = socket.create_connection((ip,port))
         except:
             critical("Please make sure to start the server before running the client",__name__)
-            quit()
+            raise Exception("Server has not yet been initialized")
         
         # Print output message        
         info(f"Client created at ip: {ip} and port: {port}",__name__)
