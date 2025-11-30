@@ -104,10 +104,10 @@ def stage_and_commit(repo_dir, commit_message="Added all accessibility features"
 
 
 # Create pull request
-def create_pull_request(repo_name, branch_name, base_branch="main", repo_dir="local_repo"):
+def create_pull_request(repo_name, branch_name, token, base_branch="main", repo_dir="local_repo"):
 
     # Get info about user and repo
-    auth = Auth.Token(TOKEN)
+    auth = Auth.Token(token)
     g = Github(auth=auth)
     test = g.get_user()
     repo = test.get_repo(repo_name)
@@ -150,19 +150,6 @@ def create_pull_request(repo_name, branch_name, base_branch="main", repo_dir="lo
             else:
                 raise
     raise Exception("GitHub failed too many times.")
-
-
-
-# For testing purposes
-def main():
-    clone_repo("https://github.com/D3BaNaNa/softwareDevTest.git")
-    llama_code_edits.edit_all_files("local_repo")
-
-    # PR on accessibility-updates branch
-    create_pull_request(repo_name="softwareDevTest", branch_name="accessibility-updates")
-
-if __name__ == "__main__":
-    main()
 
 
 # TODO:

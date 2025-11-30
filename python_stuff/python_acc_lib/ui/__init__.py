@@ -57,6 +57,10 @@ class Window(pyglet.window.Window):
             button_highlight = pyglet.shapes.Rectangle(button_highlight_coords[0],self.height-button_highlight_coords[1]-button_highlight_coords[3],button_highlight_coords[2],button_highlight_coords[3],(255,255,255,150))
             
             button_highlight.draw()
+            
+    def on_key_press(symbol, modifiers):
+        if symbol == pyglet.window.key.ESCAPE:
+            return pyglet.event.EVENT_HANDLED
 
 is_button_highlighted:bool = False
 button_highlight_coords:list = [0,0,0,0]
