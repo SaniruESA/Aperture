@@ -2,7 +2,7 @@ import os
 import traceback
 from typing import Optional
 import torch
-from transformers import AutoModelForCausalLM, AutoTokenizer, Trainer, TrainingArguments, pipeline
+from transformers import AutoModelForSeq2SeqLM, AutoTokenizer, Trainer, TrainingArguments, pipeline
 from peft import LoraConfig, get_peft_model
 from datasets import Dataset
 import json
@@ -24,22 +24,23 @@ _pipe: Optional[pipeline] = None
 tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME, use_fast=True)
 
 def tokenize(batch):
-    return tokenizer(batch["text"], truncation=True, padding=False, max_length=512)  # reduced length
+    return tokenizer(batch["text"], truncation=True, padding=False, max_length=2048)  # reduced length
 
 def loraed_model(lora_path: str):
     lora_config = LoraConfig(
-        r=8,  # reduced rank
-        lora_alpha=16, # reduced alpha
+        r=8,            # low rank
+        lora_alpha=16,  # small alpha
         lora_dropout=0.05,
         bias="none",
-        task_type="CAUSAL_LM"
+        task_type="SEQ_2_SEQ_LM"  # important: seq2seq
     )
 
-    base = AutoModelForCausalLM.from_pretrained(
+    base = AutoModelForSeq2SeqLM.from_pretrained(
         MODEL_NAME, 
         device_map="auto", 
         torch_dtype=torch.float16
     )
+    base.gradient_checkpointing_enable()
     model = get_peft_model(base, lora_config)
     model.print_trainable_parameters()
 
@@ -62,12 +63,12 @@ def loraed_model(lora_path: str):
     # Training optimization
     training_args = TrainingArguments(
         output_dir="./codet5_lora",
-        per_device_train_batch_size=1, # reduced batch size
-        gradient_accumulation_steps=4, # accumulate gradients
+        per_device_train_batch_size=1,      # reduce batch size for long sequences
+        gradient_accumulation_steps=4,      # accumulate gradients for effective batch
         warmup_steps=50,
-        max_steps=500, # shorter steps for testing
+        max_steps=500,                       # adjust as needed
         learning_rate=2e-4,
-        fp16=True, # use fp16 for GPU memory
+        fp16=True,                            # memory-efficient float16
         logging_steps=20,
         save_steps=200,
         optim="adamw_torch",
@@ -85,8 +86,8 @@ def get_pipe():
         return _pipe
 
     try:
-        model = AutoModelForCausalLM.from_pretrained(MODEL_NAME, device_map="auto", torch_dtype=torch.float16)
-        _pipe = pipeline("text-generation", model=model, tokenizer=tokenizer, max_new_tokens=200, temperature=0.2)
+        model = AutoModelForSeq2SeqLM.from_pretrained(MODEL_NAME, device_map="auto", torch_dtype=torch.float16)
+        _pipe = pipeline("text2text-generation", model=model, tokenizer=tokenizer)
         return _pipe
     except Exception:
         traceback.print_exc()
@@ -117,9 +118,9 @@ def edit_code(filepath: str, output_path: str = None):
 
     prompt = f"""
         You are an expert accessibility engineer.
-        Modify the following UI code to make elements accessible.
         Framework: {framework} ({language})
-        RULES: Extract x,y,width,height, description, type, and add SERVER.add_button([...], description).
+        RULES: Extract x,y,width,height, description, type, and write out the line "<Type of UI> <X>, <Y>, <Width>, <Height>, <Description>" for each UI element in the code.
+        Only include elements that would be visible to a user (ignore layout elements).
         ORIGINAL CODE START:
         {original_code}
         ORIGINAL CODE END
