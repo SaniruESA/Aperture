@@ -26,14 +26,34 @@ if __name__ == "__main__":
             time.sleep(1)
     
     # Add buttons
-    easy_client.add_button([0,0,50,50],"Button Numero Uno")
-    easy_client.add_button([300, 540, 250, 150],"Home Page")
+    x_offset = -70
+    y_offset = -54
+
+    easy_client.add_button([1796 + x_offset, 34 + y_offset, 110, 40], "Login button")
+    easy_client.add_button([1661 + x_offset, 34 + y_offset, 110, 40], "Sign Up button")
+    easy_client.add_button([21 + x_offset, 165 + y_offset, 110, 40], "Dashboard button")
+    easy_client.add_button([21 + x_offset, 223 + y_offset, 110, 40], "Profile button")
+    easy_client.add_button([21 + x_offset, 281 + y_offset, 110, 40], "Settings button")
+    easy_client.add_button([21 + x_offset, 339 + y_offset, 110, 40], "Help button")
+    easy_client.add_button([21 + x_offset, 397 + y_offset, 110, 40], "Logout button")
+    easy_client.add_button([296 + x_offset, 308 + y_offset, 110, 40], "Submit button")
+    easy_client.add_button([296 + x_offset, 308 + y_offset, 110, 40], "Submit button")
+    easy_client.add_button([21 + x_offset, 165 + y_offset, 110, 40], "Dashboard button")
+    easy_client.add_button([21 + x_offset, 223 + y_offset, 110, 40], "Profile button")
+    easy_client.add_button([21 + x_offset, 281 + y_offset, 110, 40], "Settings button")
+    easy_client.add_button([21 + x_offset, 339 + y_offset, 110, 40], "Help button")
+    easy_client.add_button([21 + x_offset, 397 + y_offset, 110, 40], "Logout button")
+    easy_client.add_button([296 + x_offset, 308 + y_offset, 110, 40], "Submit button")
+    easy_client.add_button([296 + x_offset, 308 + y_offset, 110, 40], "Submit button")
+    easy_client.add_button([296 + x_offset, 308 + y_offset, 110, 40], "Submit button")
+
+
     
     # Change window location
     easy_client.update_window([50,50,1000,1000])
     
     # Add popup
-    easy_client.add_popup("Hello!",(0,0,0),(255,255,255),(250,300))
+    easy_client.add_popup("Please enter a valid email.",(0,0,0),(255,255,255),(960,540))
     
     # Wait
     while True:
