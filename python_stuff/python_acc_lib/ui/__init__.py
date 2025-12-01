@@ -33,6 +33,10 @@ class Window(pyglet.window.Window):
 
     def on_draw(self):
         
+        self.render()
+        
+    def draw(self):
+        
         global update_window
         
         # Update window
@@ -61,7 +65,24 @@ class Window(pyglet.window.Window):
     def on_key_press(symbol, modifiers):
         if symbol == pyglet.window.key.ESCAPE:
             return pyglet.event.EVENT_HANDLED
+    
+    def render(self):
+        self.clear()
 
+        self.draw()
+
+        self.flip()
+        
+    def run(self,server):
+        while server.is_alive is True:
+            self.render()
+
+            self.dispatch_events()
+            
+        self.close()
+
+        quit()
+        
 is_button_highlighted:bool = False
 button_highlight_coords:list = [0,0,0,0]
 update_window:bool = False

@@ -170,11 +170,12 @@ class Server:
             # Kill server
             self.is_alive = False
             
-            # End pyglet
-            pyglet.app.exit()
+            # Stop STT
+            self.recorder.stop()
+            self.recorder.abort()
             
-            # Exit program
-            quit()
+            # Stop keyboard
+            keyboard.clear_all_hotkeys()
             
     
     def __str__(self) -> str:

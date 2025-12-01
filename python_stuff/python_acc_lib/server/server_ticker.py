@@ -180,6 +180,7 @@ def _tick_server_threaded(server:Server):
     
     # Tick forever
     while server.is_alive:
+        
         tick(server)
         
         # Notify that thread was ended
@@ -224,6 +225,9 @@ def _voice_command_server_threaded(server:Server):
     # Notify that thread was ended
     info("Ended server voice commands",__name__)
     
+    # Stop STT
+    server.recorder.stop()
+    server.recorder.abort()
     
 def start_threaded_server(server:Server):
     """
@@ -388,4 +392,4 @@ def start_pyglet_server(server:Server):
     
     # Start app
     info("Started pylget app",__name__)
-    pyglet.app.run()
+    WINDOW.run(server)
