@@ -2,70 +2,107 @@ import tkinter as tk
 from tkinter import ttk
 
 root = tk.Tk()
-root.title("Mock Homepage")
+root.title("Modern Homepage")
 root.geometry("900x600")
+root.configure(bg="#f5f6fa")
 
-nav = tk.Frame(root, bg="#2c3e50", height=60)
+# ---------------------------
+# Modern ttk theme
+# ---------------------------
+style = ttk.Style()
+style.theme_use("clam")
+
+style.configure("TButton",
+                font=("Segoe UI", 11),
+                padding=8)
+style.configure("TLabel",
+                font=("Segoe UI", 11),
+                background="#f5f6fa")
+style.configure("Card.TFrame",
+                background="white",
+                relief="ridge",
+                borderwidth=1)
+
+# ---------------------------
+# Navigation Bar
+# ---------------------------
+nav = tk.Frame(root, bg="#2d3436", height=60)
 nav.pack(fill="x")
 
-tk.Label(nav, text="MyApp Homepage", fg="white", bg="#2c3e50",
-         font=("Arial", 20, "bold")).pack(side="left", padx=20)
+tk.Label(nav, text="MyApp Homepage",
+         fg="white", bg="#2d3436",
+         font=("Segoe UI", 20, "bold")).pack(side="left", padx=20)
 
-tk.Button(nav, text="Login", bg="#34495e", fg="white").pack(side="right", padx=10)
-tk.Button(nav, text="Sign Up", bg="#1abc9c", fg="white").pack(side="right", padx=10)
+ttk.Button(nav, text="Login").pack(side="right", padx=15, pady=10)
+ttk.Button(nav, text="Sign Up").pack(side="right", padx=10, pady=10)
 
-main = tk.Frame(root)
+# ---------------------------
+# Main layout
+# ---------------------------
+main = tk.Frame(root, bg="#f5f6fa")
 main.pack(fill="both", expand=True)
 
-sidebar = tk.Frame(main, width=200, bg="#ecf0f1")
+# Sidebar
+sidebar = tk.Frame(main, width=200, bg="#dfe6e9")
 sidebar.pack(side="left", fill="y")
 
-tk.Label(sidebar, text="Menu", bg="#ecf0f1",
-         font=("Arial", 14, "bold")).pack(pady=10)
+tk.Label(sidebar, text="Menu",
+         font=("Segoe UI", 14, "bold"),
+         bg="#dfe6e9").pack(pady=20)
 
-buttons = ["Dashboard", "Profile", "Settings", "Help", "Logout"]
-for b in buttons:
-    tk.Button(sidebar, text=b).pack(fill="x", padx=10, pady=5)
+btn_names = ["Dashboard", "Profile", "Settings", "Help", "Logout"]
+for name in btn_names:
+    ttk.Button(sidebar, text=name).pack(fill="x", padx=20, pady=8)
 
-content = tk.Frame(main, bg="white")
-content.pack(side="left", fill="both", expand=True, padx=10, pady=10)
+# ---------------------------
+# Content Area
+# ---------------------------
+content = tk.Frame(main, bg="#f5f6fa")
+content.pack(fill="both", expand=True, padx=20, pady=20)
 
-tk.Label(content, text="Welcome to Your Dashboard", bg="white",
-         font=("Arial", 18, "bold")).pack(anchor="w")
+header = tk.Label(content, text="Welcome to Your Dashboard",
+                  font=("Segoe UI", 20, "bold"),
+                  bg="#f5f6fa")
+header.pack(anchor="w")
 
+# Card-like container for form
+form_card = ttk.Frame(content, style="Card.TFrame", padding=20)
+form_card.pack(anchor="w", pady=20)
 
-form_frame = tk.Frame(content, bg="white")
-form_frame.pack(pady=20, anchor="w")
-tk.Label(form_frame, text="Enter your name:", bg="white").grid(row=0, column=0, sticky="w")
-name_entry = tk.Entry(form_frame, width=30)
-name_entry.grid(row=0, column=1, padx=10)
+ttk.Label(form_card, text="Enter your name:").grid(row=0, column=0, sticky="w", pady=5)
+name_entry = ttk.Entry(form_card, width=30)
+name_entry.grid(row=0, column=1, padx=10, pady=5)
 
-tk.Label(form_frame, text="Choose a plan:", bg="white").grid(row=1, column=0, sticky="w", pady=5)
-plan_combo = ttk.Combobox(form_frame, values=["Free", "Pro", "Enterprise"], width=27)
-plan_combo.grid(row=1, column=1, padx=10)
+ttk.Label(form_card, text="Choose a plan:").grid(row=1, column=0, sticky="w", pady=5)
+plan_combo = ttk.Combobox(form_card, values=["Free", "Pro", "Enterprise"], width=27)
+plan_combo.grid(row=1, column=1, padx=10, pady=5)
 
 newsletter_var = tk.BooleanVar()
-tk.Checkbutton(form_frame, text="Subscribe to newsletter",
-               variable=newsletter_var, bg="white").grid(row=2, column=0, sticky="w", pady=5)
+ttk.Checkbutton(form_card, text="Subscribe to newsletter",
+                variable=newsletter_var).grid(row=2, column=0, columnspan=2, pady=10)
 
-tk.Button(form_frame, text="Submit", bg="#3498db", fg="white").grid(row=3, column=0, columnspan=2, pady=10)
+ttk.Button(form_card, text="Submit").grid(row=3, column=0, columnspan=2, pady=10)
 
-img_frame = tk.Frame(content, bg="#bdc3c7", width=300, height=150)
-img_frame.pack(pady=10)
-tk.Label(img_frame, text="[ Image Placeholder ]", bg="#bdc3c7").place(relx=0.5, rely=0.5, anchor="center")
+# Activity list
+ttk.Label(content, text="Recent Activity",
+          font=("Segoe UI", 15, "bold")).pack(anchor="w", pady=(20, 8))
 
-tk.Label(content, text="Recent Activity", bg="white",
-         font=("Arial", 14, "bold")).pack(anchor="w", pady=(20, 5))
+activity_box = tk.Listbox(content, height=5, width=50,
+                          font=("Segoe UI", 11),
+                          bd=0, highlightthickness=1,
+                          highlightbackground="#b2bec3")
+activity_box.pack(anchor="w")
 
-activity_list = tk.Listbox(content, height=5, width=50)
-activity_list.pack(anchor="w")
-for item in ["Logged in", "Changed password", "Viewed dashboard", "Updated profile"]:
-    activity_list.insert("end", item)
+# for item in ["Logged in", "Changed password", "Viewed dashboard", "Updated profile"]:
+#     activity_box.insert("end", "• " + item)
 
-footer = tk.Frame(root, bg="#2c3e50", height=40)
+# Footer
+footer = tk.Frame(root, bg="#2d3436", height=40)
 footer.pack(fill="x", side="bottom")
+tk.Label(footer,
+         text="© 2025 MyApp — All rights reserved.",
+         fg="white", bg="#2d3436",
+         font=("Segoe UI", 10)).pack()
 
-tk.Label(footer, text="© 2025 MyApp — All rights reserved.",
-         fg="white", bg="#2c3e50").pack()
-
-root.mainloop()
+if __name__ == "__main__":
+    root.mainloop()
