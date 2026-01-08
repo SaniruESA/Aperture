@@ -83,6 +83,15 @@ def add_button(position:list[int,int,int,int],name:str) -> str:
     
     return CLIENT.send_and_recv({"type":"add_button","content":json.dumps(position),"name":name})
 
+def clear_button() -> str:
+    """
+    Clears all and ui elements on the screen
+    """
+
+    info("Clearing all buttons",__name__)
+    
+    return CLIENT.send_and_recv({"type":"clear_button"})
+
 def update_window(position:list[int,int,int,int]) -> str:
     """
     Updates the position of the window and button placement

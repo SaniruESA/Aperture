@@ -92,6 +92,14 @@ name: Button name
 This will add a button for tab navigation to select
 """
 
+HELP_CLEAR_BUTTON = """
+Clear Button
+type: clear_button
+content: None
+
+This will clear all buttons present on the screen
+"""
+
 HELP_UPDATE_WINDOW = """
 Update Window
 type: update_window
@@ -126,6 +134,19 @@ def format_json(item:str):
     # Add json to packet
     return '{"type":"help","content:"'+item+'"}'
 
+help_decrypt = {
+    "": HELP_MENU,
+    "help": HELP_HELP,
+    "verify": HELP_VERIFY,
+    "exit": HELP_EXIT,
+    "generate_tts": HELP_TTS,
+    "add_button": HELP_ADD_BUTTON,
+    "clear_button": HELP_CLEAR_BUTTON,
+    "update_window": HELP_UPDATE_WINDOW,
+    "add_popup": HELP_ADD_POPUP
+    
+}
+
 def help_menu(server:Server,recv_json:dict):
     """
     Sends back help menu from server
@@ -140,52 +161,12 @@ def help_menu(server:Server,recv_json:dict):
     # If they are looking for a specific type
     if "content" in recv_json:
         
-        match recv_json["content"]:
+        content = recv_json["content"]
             
-            # Empty menu
-            case "":
-                
-                server.send(format_json(HELP_MENU))
-            
-            # Help menu
-            case "help":
-                
-                server.send(format_json(HELP_HELP))
-                
-            # Verify
-            case "verify":
-                
-                server.send(format_json(HELP_VERIFY))
-                
-            # Exit
-            case "exit":
-                
-                server.send(format_json(HELP_EXIT))
-                
-            # TTS Generation
-            case "generate_tts":
-                
-                server.send(format_json(HELP_TTS))
-                
-            # Adding Button
-            case "add_button":
-                
-                server.send(format_json(HELP_ADD_BUTTON))
-            
-            # Updating Window Position
-            case "update_window":
-                
-                server.send(format_json(HELP_UPDATE_WINDOW))
-                
-            # Adding a popup
-            case "add_popup":
-                
-                server.send(format_json(HELP_ADD_POPUP))
-                
-            # Other
-            case _:
-                
-                server.send(format_json("I don't know what help you are trying to access, send help with no content to view full help menu"))
+        if content in help_decrypt:
+            server.send(help_decrypt[content])
+        else:
+            server.send(format_json("I don't know what help you are trying to access, send help with no content to view full help menu"))
     
     # If they are looking for anything
     else:

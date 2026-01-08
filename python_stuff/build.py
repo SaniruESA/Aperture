@@ -38,7 +38,10 @@ if __name__ == "__main__":
     easy_client.add_button([21 + x_offset, 339 + y_offset, 110, 40], "Help button")
     easy_client.add_button([21 + x_offset, 397 + y_offset, 110, 40], "Logout button")
     easy_client.add_button([296 + x_offset, 308 + y_offset, 110, 40], "Submit button")
+    
+    easy_client.clear_button()
 
+    time.sleep(5)
     window:pygetwindow.Window = pygetwindow.getWindowsWithTitle("Modern Homepage")[0]
     
     # Add popup
@@ -48,5 +51,5 @@ if __name__ == "__main__":
     while True:
         window_loc = [window.left,window.top,window.width,window.height]
         # Change window location
-        easy_client.update_window()
+        easy_client.update_window(window_loc)
         time.sleep(1)
