@@ -115,6 +115,23 @@ def add_button(server:Server,recv_json:dict):
     # Return back
     server.send('{"type":"add_button","content":"Button has been added"}')
     
+def clear_button(server:Server,recv_json:dict):
+    """
+    Clears all buttons from the server
+    
+    Arguments:
+        server:
+            Server instance
+        recv_json:
+            Received json content
+    """
+    
+    # Clear buttons
+    server.keyboardtab.clearAllUIElements()
+    
+    # Return back
+    server.send('{"type":"add_button","content":"All buttons have been removed"}')
+    
 def add_missing(base:dict,example:dict):
     """
     Adds any missing keys or values to base from example
@@ -356,6 +373,12 @@ def tick(server:Server):
             
             # Add a button to tab nav
             add_button(server,recv_json)
+            
+        # Clearing button
+        case "clear_button":
+            
+            # Remove button from tab nav
+            clear_button(server,recv_json)
             
         # Updating window
         case "update_window":

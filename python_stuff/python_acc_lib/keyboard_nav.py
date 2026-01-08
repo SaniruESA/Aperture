@@ -57,6 +57,14 @@ class TabNavOrder():
         self.order[UIType].append({"rect": buttonRect, "ariaText": ariaText})
 
         info(f"Added UI Element for {ariaText}", __name__)
+        
+    def clearAllUIElements(self):
+        self.order = {
+            "button": [],
+            "text": []
+        }
+        
+        info("Cleared all UI Elements",__name__)
 
     def handleTabPress(self,shift:bool=False):
         
