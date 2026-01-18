@@ -1,7 +1,7 @@
 import os
 import time
-import python_acc_lib.server.easy_client as easy_client
-import python_acc_lib.logger as logger
+import aperture_library.server.easy_client as easy_client
+import aperture_library.logger as logger
 import pygetwindow
 
 # Run server
