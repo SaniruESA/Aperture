@@ -37,7 +37,24 @@ def get_version(library_pip:str):
         if b"Version" in line:
             return str(line,"utf-8").replace("Version: ","")
 
-def check_library(library_name:str,library_pip:str,version:str=""):
+def get_exists(library_pip:str) -> bool:
+    """
+    Gets the library existence using pip (this is slow)
+    """
+    
+    # Run pip show library
+    process = subprocess.run(f"pip show {library_pip}",capture_output=True)
+    
+    # Split the output by lines
+    stdout = process.stdout.split(b"\r\n")
+    
+    # Check if blank
+    if stdout == [b""]:
+        return False
+        
+    return True
+
+def check_library(library_name:str,library_pip:str,version:str="",skip_import:bool=False):
     """
     Makes sure a library exists before importing
     
@@ -48,6 +65,8 @@ def check_library(library_name:str,library_pip:str,version:str=""):
             The pip name of the library
         version:
             The version of the library
+        skip_import:
+            Skips importing the library (for libraries that have dll like pygame)
     """
     global PIP_MUST_INSTALL,MODULE_LIST
     
@@ -59,7 +78,11 @@ def check_library(library_name:str,library_pip:str,version:str=""):
         
         # Check for library
         info(f"Checking presence: {library_name}",__name__)
-        __import__(library_name)
+        if skip_import:
+            __import__(library_name)
+        else:
+            if not get_exists(library_pip):
+                raise ImportError("Library does not exist")
         info(f"Found!: {library_name}",__name__)
         
         # Only check if version is specified in call
@@ -139,7 +162,7 @@ def verify_lib():
     # Check libraries
     check_library("edge_tts","edge-tts","7.2.0")
     check_library("pyglet","pyglet","2.1.8")
-    check_library("pygame","pygame","2.6.1")
+    check_library("pygame","pygame","2.6.1",skip_import=True)
     check_library("pyautogui","pyautogui","0.9.54")
     check_library("keyboard","keyboard","0.13.5")
     
