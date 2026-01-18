@@ -1,7 +1,7 @@
-import python_acc_lib.server as server
-from python_acc_lib.server import easy_client
-import python_acc_lib.logger as logger
-from python_acc_lib.logger.basic_logs import *
+import aperture_library.server as server
+from aperture_library.server import easy_client
+import aperture_library.logger as logger
+from aperture_library.logger.basic_logs import *
 import time
 
 if __name__ == "__main__":
