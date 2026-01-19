@@ -79,6 +79,9 @@ class Server:
         
         # Generate a keyboard tab navigation
         self.keyboardtab = keyboard_nav.TabNavOrder()
+
+        # Generate a audio transcription stream display
+        self.transcription = audio_transcription
         
         # Add keyboard button shortcuts
         keyboard.add_hotkey("tab",self.keyboardtab.handleTabPress,(False,))
@@ -387,6 +390,7 @@ class Client:
 # Import ticker method and keyboard nav to prevent circular imports
 from . import server_ticker as server_ticker
 from .. import keyboard_nav
+from .. import audio_transcription
 
 # Method to easily start the server
 def fast_start(port:int=8080,ip:str=DEFAULT_COMPUTER_IP):
