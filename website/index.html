@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Aperture</title>
+    <style>
+    html, body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+    }
+    .title-box {
+        width: 100%;
+        height: 100px;
+        background-color: #D1A8E3;
+        display: flex;
+        align-items: center;      
+        justify-content: center;  
+        color: rgb(255, 255, 255);
+        font-size: 32px;
+        font-weight: bold;    
+        border-bottom-right-radius: 4px;
+        border-bottom-left-radius: 4px;
+        box-shadow: 0 6px 16px rgba(0,0,0,0.3);
+    }
+    .enter-box {
+        margin-top: calc(50vh - 50px);
+        margin-left: auto;
+        margin-right: auto;
+        width: 70%;
+        height: 40px;
+        background-color: #713988;
+        display: flex;
+        align-items: center;      
+        justify-content: center;  
+        color: rgb(255, 255, 255);
+        font-size: 32px;
+        font-weight: bold;    
+        border-radius: 4px;
+        box-shadow: 0 6px 16px rgba(0,0,0,0.3);
+    }
+    .side-scroll {
+        width: 100%;
+        height: calc(100% - 100px);
+       background-image: repeating-linear-gradient(
+            45deg,
+            transparent 2px,
+            transparent 15px, /* change this */
+            #211421 15px, /* and change this to make the lines thicker/thinner */
+            #211421 30px
+        );
+        background-size: 40px 40px;
+        animation: scroll 1s linear infinite;
+        will-change: background-position;
+        overflow: hidden;
+    }
+    .github-link {
+        width: 100%;
+        padding: 12px 10px;
+        margin: 8px 0;
+        display: inline-block;
+        border: 2px solid #8B6B99; 
+        border-radius: 4px; 
+        box-sizing: border-box;
+        background-color: #1b1b1b;
+        font-size: 16px;
+        color:#b9a7bb
+    }
+
+    @keyframes scroll {
+      to { background-position: 40px 0px; }
+    }
+    </style>
+  </head>
+  <body style="background-color: #200f20;">
+    <div class="title-box">
+    Welcome, [User]
+    </div>
+    <div class="side-scroll">
+        <div class="enter-box">
+            <input type="text" id="githublink" class="github-link" placeholder="Enter a Github Repository...">
+            <script src="src/renderer.js"></script>
+        </div>
+
+    </div>
+  </body>
+</html>
