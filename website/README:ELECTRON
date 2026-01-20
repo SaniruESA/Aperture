@@ -1,6 +1,0 @@
-Run electron by running in terminal:
-cd website
-npm start
-
-I will add error handling and stuff, for now I just pushed without it
-
