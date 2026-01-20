@@ -9,7 +9,7 @@ function startPythonProcess() {
   const pythonPath = path.join(__dirname, '..', '..', 'code_modification', 'main.py')
   pythonProcess = spawn('python3', [pythonPath], {
     cwd: path.join(__dirname, '..'),
-    stdio: ['pipe', 'pipe', 'pipe']
+    stdio: ['pipe', 'pipe', 'pipe'] // displaying errors not added yet
   })
 }
 
