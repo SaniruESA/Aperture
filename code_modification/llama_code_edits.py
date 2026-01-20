@@ -6,10 +6,14 @@ from transformers import AutoModelForSeq2SeqLM, AutoTokenizer, Trainer, Training
 from peft import LoraConfig, get_peft_model
 from datasets import Dataset
 import json
+import platform
+
+with open("../supported.json", "r", encoding="utf-8") as file:
+    supported_json = json.load(file)
 
 print(torch.__version__)
 
-MODEL_NAME = "Salesforce/codet5-small"  # ~220M params
+MODEL_NAME = "Salesforce/codet5-small"  # 220M
 
 # Universal UI element types
 UITypes = ["button", "text"]
@@ -20,7 +24,6 @@ file_endings = {"py": "Python",
 
 _pipe: Optional[pipeline] = None
 
-# Load tokenizer and base model once
 tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME, use_fast=True)
 
 def tokenize(batch):
@@ -28,11 +31,11 @@ def tokenize(batch):
 
 def loraed_model(lora_path: str):
     lora_config = LoraConfig(
-        r=8,            # low rank
-        lora_alpha=16,  # small alpha
+        r=8,
+        lora_alpha=16,
         lora_dropout=0.05,
         bias="none",
-        task_type="SEQ_2_SEQ_LM"  # important: seq2seq
+        task_type="SEQ_2_SEQ_LM"
     )
 
     base = AutoModelForSeq2SeqLM.from_pretrained(
@@ -60,15 +63,14 @@ def loraed_model(lora_path: str):
     dataset = Dataset.from_list([{"text": build_text(entry)} for entry in entries])
     tokenized = dataset.map(tokenize, batched=True, remove_columns=["text"])
 
-    # Training optimization
     training_args = TrainingArguments(
         output_dir="./codet5_lora",
-        per_device_train_batch_size=1,      # reduce batch size for long sequences
-        gradient_accumulation_steps=4,      # accumulate gradients for effective batch
+        per_device_train_batch_size=1,
+        gradient_accumulation_steps=4,
         warmup_steps=50,
-        max_steps=500,                       # adjust as needed
+        max_steps=500,
         learning_rate=2e-4,
-        fp16=True,                            # memory-efficient float16
+        fp16=True,
         logging_steps=20,
         save_steps=200,
         optim="adamw_torch",
@@ -98,7 +100,7 @@ def string_to_single_line(input_string: str) -> str:
     stripped_lines = [line.strip().replace("\"", "\\\"") for line in lines if line.strip()]
     return '\\n'.join(stripped_lines)
 
-def edit_code(filepath: str, output_path: str = None):
+def edit_code(filepath: str, framework: str, output_path: str = None):
     with open(filepath, "r", encoding="utf-8") as f:
         original_code = f.read()
 
@@ -111,7 +113,7 @@ def edit_code(filepath: str, output_path: str = None):
                 framework = "Tkinter" 
             case "JavaScript": 
                 framework = "React" 
-            case "TypeScript": 
+            case "TypeScript":
                 framework = "React" 
             case _: 
                 framework = "React"
@@ -133,8 +135,42 @@ def edit_code(filepath: str, output_path: str = None):
     output_path = output_path or "build.py"
     with open(output_path, "w", encoding="utf-8") as f:
         f.write(response)
-    print(f"Accessible version saved to: {output_path}")
+    print(f"Accessible version saved to {output_path}")
     return response
+
+def edit_entry_point(entry_point_path: str):
+    file_extension = "." + entry_point_path.split(".")[1]
+    user_os = platform.system().lower()
+    user_os = "mac" if user_os == "darwin"
+
+    aperture_path = "/aperture_app"
+    match user_os:
+        case "windows":
+            aperture_path += ".exe"
+        case "mac":
+            aperture_path += ".app"
+        case "linux":
+            pass
+
+    to_insert = supported_json["languages"][file_extension][user_os]
+    to_insert = to_insert.replace("PATH_PLACEHOLDER", aperture_path)
+
+    # TODO: add logic to not do duplicate imports
+    with open(file_path, "a", encoding="utf-8") as f: 
+        contents = f.read()
+        contents = to_insert + "\n\n" + contents
+
+
+
+
+def edit_code_test(file_path):
+    with open(file_path, "r", encoding="utf-8") as f:
+        code = f.read()
+
+    modified_code = code + "1/17/26"
+
+    with open(file_path, "w", encoding="utf-8") as f:
+        f.write(modified_code)
 
 if __name__ == "__main__":
     try:
