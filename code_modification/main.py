@@ -49,4 +49,4 @@ if __name__ == "__main__":
                 continue
             try:
                 cmd = json.loads(line)
-            handle_command(cmd)
+                handle_command(cmd)
