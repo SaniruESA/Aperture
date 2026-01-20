@@ -3,60 +3,67 @@ from github import Github, Auth, GithubException
 from git import Repo
 import os
 import time
-import llama_code_edits
+import requests
+import stat
 
-# NOT secure yet, have to manually add token.
-TOKEN = ""
+CLIENT_ID = "Ov23liV0UHREdct0ILC3"
 
-# # Authenticate a user with username and password
-# # to allow them to create pull requests
-# def login_auth(username: str, password: str):
+def authenticate_with_github():
+    # Step 1: get device code
+    res = requests.post(
+        "https://github.com/login/device/code",
+        headers={"Accept": "application/json"},
+        data={
+            "client_id": CLIENT_ID,
+            "scope": "repo read:user"
+        }
+    ).json()
 
-#     # TODO: Add extra layers of auth/security?
-#     auth = Auth.Login(username, password)
-#     g = Github(auth=auth)
-#     g.get_user().login
+    print("Sign in with GitHub")
+    print(res["verification_uri"])
+    print("Code:", res["user_code"])
 
-# # Authenticate a user with OAuth
-# # to allow them to create pull requests
-# def oauth(access_token: str):
+    device_code = res["device_code"]
+    interval = res.get("interval", 5)
 
-#     # PUT THIs ON INFO LOG LTER
-#     """
-#     Quick guide to OAuth tokens with Github:
-#     1) Log in to Github on browser/desktop app
-#     2) On the top right of your screen, click "Settings"
-#     3) Navigate to "Developer Settings" -> "Personal Access Tokens"
-#     4) Click "Fine-Grained Tokens" and click "Generate New Token"
-#     5) Customize the shown fields as you wish
-#     6) Generate your token
-#     7) Add the following permissions to the token:
-        # -Repository:
-        #     -Contents (Read/Write)
-        #     -Metadata (Read)
-        #     -Pull requests (Read/Write)
-        # -Account
-        #     -Profile (Read/Write)
-#     """
+    # Step 2: poll
+    while True:
+        token_res = requests.post(
+            "https://github.com/login/oauth/access_token",
+            headers={"Accept": "application/json"},
+            data={
+                "client_id": CLIENT_ID,
+                "device_code": device_code,
+                "grant_type": "urn:ietf:params:oauth:grant-type:device_code"
+            }
+        ).json()
 
-#     auth = Auth.Token(access_token)
-#     g = Github(auth=auth)
-#     g.get_user().login
+        if "access_token" in token_res:
+            return token_res["access_token"]
+
+        if token_res.get("error") not in ("authorization_pending", "slow_down"):
+            raise RuntimeError(token_res)
+
+        time.sleep(interval)
+
+# Error handler to delete read-only files
+def remove_readonly(func, path, exc_info):
+    os.chmod(path, stat.S_IWRITE)
+    func(path)
 
 # Clone a Github repo, given the HTTPS URL and the directory to clone it into
 def clone_repo(repo_url, clone_dir="local_repo"):
 
     # Delete a repo if it already exists
     if os.path.exists(clone_dir):
-        print("Repo already exists, deleting...")
+        print("Local repo clone exists, deleting and replacing")
 
         import shutil
-        shutil.rmtree(clone_dir)
+        shutil.rmtree(clone_dir, onexc=remove_readonly)
 
     # Clone repo into the directory provided
-    print(f"Cloning {repo_url}...")
     Repo.clone_from(repo_url, clone_dir)
-    print("Clone complete")
+    print(f"Cloned {repo_url}")
     return clone_dir
 
 # Stages all modified files and creates a commit.
@@ -70,43 +77,37 @@ def stage_and_commit(repo_dir, commit_message="Added all accessibility features"
     # COMENT
     remote_branches = [ref.name.split('/')[-1] for ref in origin.refs]  # list of remote branch names
     if new_branch in remote_branches:
-        print(f"Remote branch '{new_branch}' exists, deleting...")
+        print(f"Deleting remote branch '{new_branch}'")
         origin.push(f":{new_branch}")  # delete remote branch
-        print(f"Remote branch '{new_branch}' deleted.")
 
     # COMENT
     if new_branch in repo.heads:
-        print(f"Local branch '{new_branch}' exists, deleting...")
+        print(f"Deleting local branch '{new_branch}'")
         repo.git.branch('-D', new_branch)
-        print(f"Local branch '{new_branch}' deleted.")
 
-
-    # Create the branch if it doesn't exist
-    # if new_branch in repo.heads:
-    #     repo.git.checkout(new_branch)
-    # else:
     repo.git.checkout("-b", new_branch)
 
     if repo.is_dirty(untracked_files=True):
         repo.git.add(".")
         repo.git.commit("-m", commit_message)
     else:
-        print("No changes to commit.") # TODO: replace with info
+        print("No changes to commit") # TODO: replace with info()
         return False
 
     # Push branch to GitHub
     push_result = origin.push(refspec=f"{new_branch}:{new_branch}", force=True)
     for info in push_result:
-        print("Push summary:", info.summary, "| flags:", info.flags)
+        print("Push summary:", info.summary, "\nFlags:", info.flags)
 
 
     return True
 
 
 # Create pull request
-def create_pull_request(repo_name, branch_name, token, base_branch="main", repo_dir="local_repo"):
+def create_pull_request(repo_name, branch_name, base_branch="main", repo_dir="local_repo"):
 
     # Get info about user and repo
+    token = authenticate_with_github()
     auth = Auth.Token(token)
     g = Github(auth=auth)
     test = g.get_user()
@@ -157,3 +158,24 @@ def create_pull_request(repo_name, branch_name, token, base_branch="main", repo_
 # Add functionality for this to use a seperate "accessibility" branch?
 # info() logs stuff
 # allow customizing the repo clone path
+
+
+# old
+
+#     # PUT THIs ON INFO LOG LTER
+#     """
+#     Quick guide to OAuth tokens with Github:
+#     1) Log in to Github on browser/desktop app
+#     2) On the top right of your screen, click "Settings"
+#     3) Navigate to "Developer Settings" -> "Personal Access Tokens"
+#     4) Click "Fine-Grained Tokens" and click "Generate New Token"
+#     5) Customize the shown fields as you wish
+#     6) Generate your token
+#     7) Add the following permissions to the token:
+        # -Repository:
+        #     -Contents (Read/Write)
+        #     -Metadata (Read)
+        #     -Pull requests (Read/Write)
+        # -Account
+        #     -Profile (Read/Write)
+#     """
