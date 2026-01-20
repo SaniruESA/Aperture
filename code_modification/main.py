@@ -2,6 +2,7 @@ import llama_code_edits
 import git_actions 
 import os   
 import json
+import sys
 
 with open("../supported.json", "r", encoding="utf-8") as file:
     supported_json = json.load(file)
@@ -30,7 +31,22 @@ def edit_all_files(repo_link: str, entry_point_path: str, framework: str, testin
     # PR on accessibility-updates branch
     git_actions.create_pull_request(repo_name=repo_name, 
                                     branch_name="accessibility-updates")
+# This will have multiple conditions later, just one communication for now
+def handle_command(cmd: dict):
+    action = cmd.get("action")
+    if action == "run_edit_all":
+        testing = bool(cmd.get("testing", False))
+        edit_all_files(cmd.get("repo_link"), cmd.get("entry_point_path", ""), cmd.get("framework", ""), testing=testing)
 
-# testing purposes
 if __name__ == "__main__":
-    edit_all_files("https://github.com/D3BaNaNa/softwareDevTest.git", testing=True)
+    # detects args (excludes script name) 
+    if len(sys.argv) > 1:
+        edit_all_files(sys.argv[1], testing=True)
+    else: # keep reading commands otherwise
+        for line in sys.stdin:
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                cmd = json.loads(line)
+            handle_command(cmd)
