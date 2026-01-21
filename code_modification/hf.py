@@ -1,10 +1,12 @@
 import os
 import requests
+import hugging_face_auth
 
+# Get headers and URL
 # Get headers and URL
 API_URL = "https://router.huggingface.co/v1/chat/completions"
 HEADER = {
-    "Authorization": f"Bearer {os.environ['HF_TOKEN']}",
+    "Authorization": f"Bearer {hugging_face_auth.get_token_pipeline()}",
 }
 
 def query(payload:dict):
@@ -43,6 +45,8 @@ def prompt_code(code:str):
 
     # Get the content of the response
     content = response["choices"][0]["message"]["content"]
+    
+    print(content)
     
     # Return back code modifications
     return content
@@ -99,10 +103,10 @@ def split_item(item:str) -> Item:
     """
 
     # <Type of UI>, <X>, <Y>, <Width>, <Height>, <Description/Text>, <Line Number of Code>
-    separated = [item.strip() for item in item.split(",")]
+    separated = [item for item in item.split(",")]
     
     # Format
-    return Item(ui_type=separated[0].strip("<>").lower(),x=int(separated[1]),y=int(separated[2]),width=int(separated[3]),height=int(separated[4]),text=separated[5],line_num=int(separated[6]))
+    return Item(ui_type=separated[0].strip(" <>").lower(),x=int(separated[1]),y=int(separated[2]),width=int(separated[3]),height=int(separated[4]),text=", ".join(separated[5:-1]),line_num=int(separated[-1]))
 
 def sort_response(original_content:str) -> dict:
     """
