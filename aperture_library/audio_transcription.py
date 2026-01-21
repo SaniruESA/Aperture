@@ -1,6 +1,8 @@
 import subprocess
 import platform
 import os
+import threading
+from . import ui
 
 # determine the executable to use based on user os
 match platform.system():
@@ -19,25 +21,24 @@ process = subprocess.Popen(
     stderr=subprocess.PIPE
 )
 
-while True:
-    # reading 1 chunk at a time
-    subtitle_chunk = ""
+def show_subtitles():
 
-    byte_chunk = b""
-    while byte_chunk != b"\n":
-        byte_chunk = process.stdout.read(1)
-        subtitle_chunk += byte_chunk.decode('utf-8')
+    while True:
+        # reading 1 chunk at a time
+        subtitle_chunk = ""
+
+        byte_chunk = b""
+        while byte_chunk != b"\n":
+            byte_chunk = process.stdout.read(1)
+            subtitle_chunk += byte_chunk.decode("utf-8")
+            
+            ui.CAPTION_SUB = subtitle_chunk
+        
+        # see if process is finished
+        if not byte_chunk:
+            break
     
-    # see if process is finished
-    if not byte_chunk:
-        break
-    
-    print(f"Received: {subtitle_chunk}")  # Prints immediately (test)
-
-# Wait for process to complete
-process.wait()
-
-
+threading.Thread(target=show_subtitles, daemon=True).start()
 
 class Queue:
     def __init__(self):
