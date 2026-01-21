@@ -5,29 +5,34 @@ import os
 # determine the executable to use based on user os
 match platform.system():
     case "Windows":
-        exe_path = "./publish/win-x64/Aperture.exe"
+        exe_path = "aperture_library/audio_transcription_tools/Aperture.exe"
     case "Linux":
-        exe_path = "./publish/linux-x64/Aperture"
+        exe_path = "aperture_library/audio_transcription_tools/Aperture"
     case "Darwin":
-        exe_path = "./publish/osx-x64/Aperture"
+        exe_path = "aperture_library/audio_transcription_tools/Aperture"
 
 os.chmod(exe_path, 0o755)
 
 process = subprocess.Popen(
-    ["./YourApp.exe"],
+    [exe_path],
     stdout=subprocess.PIPE,
     stderr=subprocess.PIPE
 )
 
 while True:
-    # reading 1 byte at a time
-    byte_chunk = process.stdout.read(1)
+    # reading 1 chunk at a time
+    subtitle_chunk = ""
+
+    byte_chunk = b""
+    while byte_chunk != b"\n":
+        byte_chunk = process.stdout.read(1)
+        subtitle_chunk += byte_chunk.decode('utf-8')
     
     # see if process is finished
     if not byte_chunk:
         break
     
-    print(f"Received: {str(byte_chunk)}")  # Prints immediately (test)
+    print(f"Received: {subtitle_chunk}")  # Prints immediately (test)
 
 # Wait for process to complete
 process.wait()
