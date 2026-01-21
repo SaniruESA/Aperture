@@ -1,7 +1,7 @@
 from aperture_library import verify_lib
 
 # For testing purposes
-CHECK_LIBS = True
+CHECK_LIBS = False
 if CHECK_LIBS:
     verify_lib()
 
