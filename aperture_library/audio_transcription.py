@@ -1,6 +1,8 @@
 import subprocess
 import platform
 import os
+import pyglet
+import threading
 
 # determine the executable to use based on user os
 match platform.system():
@@ -19,20 +21,43 @@ process = subprocess.Popen(
     stderr=subprocess.PIPE
 )
 
-while True:
-    # reading 1 chunk at a time
-    subtitle_chunk = ""
 
-    byte_chunk = b""
-    while byte_chunk != b"\n":
-        byte_chunk = process.stdout.read(1)
-        subtitle_chunk += byte_chunk.decode('utf-8')
-    
-    # see if process is finished
-    if not byte_chunk:
-        break
-    
-    print(f"Received: {subtitle_chunk}")  # Prints immediately (test)
+
+def show_subtitles():
+
+    SCREEN_HEIGHT = 1080
+    SCREEN_WIDTH = 1920
+    FONT_SIZE = 60
+
+    subtitle_text = pyglet.text.Label("", y=SCREEN_HEIGHT-(20+FONT_SIZE),
+                                  font_size=60, align="center", color=(0,0,0))
+    bg_rect = pyglet.shapes.Rectangle(x=subtitle_text.x,
+        y=SCREEN_HEIGHT-(20+FONT_SIZE),
+        width=(SCREEN_WIDTH/2 - (subtitle_text.x)*2),
+        height=FONT_SIZE,
+        color=(255,255,255))
+
+    while True:
+        # reading 1 chunk at a time
+        subtitle_chunk = ""
+
+        byte_chunk = b""
+        while byte_chunk != b"\n":
+            byte_chunk = process.stdout.read(1)
+            subtitle_chunk += byte_chunk.decode("utf-8")
+        
+        # see if process is finished
+        if not byte_chunk:
+            break
+
+        subtitle_text.text = subtitle_chunk
+        bg_rect.x = subtitle_text.x
+        bg_rect.width = (SCREEN_WIDTH/2 - (subtitle_text.x)*2)
+
+        bg_rect.draw()
+        subtitle_text.draw()
+
+threading.Thread(target=show_subtitles, daemon=True).start()
 
 # Wait for process to complete
 process.wait()
