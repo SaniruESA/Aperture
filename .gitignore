@@ -368,3 +368,4 @@ log.txt
 # other
 /temp
 /local_repo
+.env
