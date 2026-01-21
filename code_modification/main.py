@@ -1,4 +1,4 @@
-import llama_code_edits
+import code_modification.code_edits as code_edits
 import git_actions 
 import os   
 import json
@@ -18,9 +18,9 @@ def edit_all_files(repo_link: str, entry_point_path: str, framework: str, testin
             # update to add the many different file types (potentially an ignore list)
             if file.endswith(tuple(frameworks[framework]["file_extensions"].split(", "))):
                 if not testing:
-                    llama_code_edits.edit_code(os.path.join(root, file))
+                    code_edits.edit_code(os.path.join(root, file))
                 else:
-                    llama_code_edits.edit_code_test(os.path.join(root, file))
+                    code_edits.edit_code_test(os.path.join(root, file))
 
             # LOG HERE
             # info(f"Edited {file}, __name__")

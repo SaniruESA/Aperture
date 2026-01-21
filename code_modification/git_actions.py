@@ -5,11 +5,13 @@ import os
 import time
 import requests
 import stat
+import webbrowser
+import pyperclip
 
 CLIENT_ID = "Ov23liV0UHREdct0ILC3"
 
 def authenticate_with_github():
-    # Step 1: get device code
+
     res = requests.post(
         "https://github.com/login/device/code",
         headers={"Accept": "application/json"},
@@ -19,14 +21,25 @@ def authenticate_with_github():
         }
     ).json()
 
-    print("Sign in with GitHub")
-    print(res["verification_uri"])
-    print("Code:", res["user_code"])
+    base_url = res["verification_uri"]
+    code = res["user_code"]
+
+    user_code = res["user_code"]
+    pyperclip.copy(user_code)
+
+    print("The GitHub authentication page will open shortly.")
+    print("Your code has already been copied to your clipboard, you just need to paste it.")
+
+    print(f"Code {user_code} copied to clipboard!")
+    webbrowser.open(res["verification_uri"])
+
+
+
+    webbrowser.open(f"{base_url}?user_code={code}")
 
     device_code = res["device_code"]
     interval = res.get("interval", 5)
 
-    # Step 2: poll
     while True:
         token_res = requests.post(
             "https://github.com/login/oauth/access_token",
@@ -179,3 +192,5 @@ def create_pull_request(repo_name, branch_name, base_branch="main", repo_dir="lo
         # -Account
         #     -Profile (Read/Write)
 #     """
+
+authenticate_with_github()
