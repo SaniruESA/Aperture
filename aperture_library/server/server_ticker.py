@@ -13,6 +13,7 @@ from .. import ui
 from .. import settings
 from ..ui import popup
 from .. import voice_commands
+from .. import audio_transcription
 
 BLANK_PACKET_MAXIMUM:int = 100 # Number of blank packets received before server will automatically shut off
 BLANK_PACKET_COUNT:int = 0 # Number of blank packets received
@@ -398,6 +399,14 @@ def tick(server:Server):
         case "add_popup":
             
             add_popup(server,recv_json)
+
+        case "show_transcription":
+
+            audio_transcription.Queue.add_subtitle(recv_json["content"])
+
+            # Send back
+            server.send('{"type":"show_transcription","content":"Transcription shown"}')
+
         
         # Unknown type
         case _:

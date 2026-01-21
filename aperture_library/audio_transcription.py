@@ -1,24 +1,67 @@
-import select
-from ui import popup
+import subprocess
+import platform
+import os
 
-def non_blocking_read(filepath):
-    with open(filepath, 'r') as f:
-        f.seek(0, 2)  # Go to end
-        
-        while True:
-            # Check if data is ready to read (timeout=1 second)
-            ready, _, _ = select.select([f], [], [], 1.0)
+# determine the executable to use based on user os
+match platform.system():
+    case "Windows":
+        exe_path = "./publish/win-x64/Aperture.exe"
+    case "Linux":
+        exe_path = "./publish/linux-x64/Aperture"
+    case "Darwin":
+        exe_path = "./publish/osx-x64/Aperture"
+
+os.chmod(exe_path, 0o755)
+
+process = subprocess.Popen(
+    ["./YourApp.exe"],
+    stdout=subprocess.PIPE,
+    stderr=subprocess.PIPE
+)
+
+while True:
+    # reading 1 byte at a time
+    byte_chunk = process.stdout.read(1)
+    
+    # see if process is finished
+    if not byte_chunk:
+        break
+    
+    print(f"Received: {str(byte_chunk)}")  # Prints immediately (test)
+
+# Wait for process to complete
+process.wait()
+
+
+
+class Queue:
+    def __init__(self):
+        self.queue_text = []
+        self.queue_times = []
+        self.subtitle_expiry = 3000 #ms
+
+    def add_subtitle(self, content):
+        self.queue_text.append(content)
+        self.queue_times.append(self.subtitle_expiry)
+
+    def tick(self, tick_time):
+        self.queue_times = [t - tick_time for t in self.queue_times]
+
+        start_at = -1
+
+        for e, i in enumerate(self.queue_times):
+            if e > 0:
+                start_at = i
+                break
+
+        if start_at != -1:
+            self.queue_times = self.queue_times[start_at:]
+            self.queue_text = self.queue_text[start_at:]
             
-            if ready:
-                line = f.readline()
-                return line
-
-line = non_blocking_read()     
-if line:
-    # popup
-    pass
-
-# add to server ??
 
 
 
+            
+# # testing purposes
+# if __name__ == "__main__":
+#     run_periodic_task()

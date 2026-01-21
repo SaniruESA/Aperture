@@ -31,6 +31,7 @@ def edit_all_files(repo_link: str, entry_point_path: str, framework: str, testin
     # PR on accessibility-updates branch
     git_actions.create_pull_request(repo_name=repo_name, 
                                     branch_name="accessibility-updates")
+
 # This will have multiple conditions later, just one communication for now
 def handle_command(cmd: dict):
     action = cmd.get("action")
@@ -50,3 +51,5 @@ if __name__ == "__main__":
             try:
                 cmd = json.loads(line)
                 handle_command(cmd)
+            except:
+                pass
