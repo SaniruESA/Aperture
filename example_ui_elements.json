@@ -1,0 +1,10 @@
+{
+    "filename.extension-ln123": {
+        "width": blah,
+        "height": blah,
+        "x": blah,
+        "y": blah,
+        "uitype": blah, //e.g. button, text box, etc
+        "text": blah // description/aria text type thing for the ui element
+    }
+}

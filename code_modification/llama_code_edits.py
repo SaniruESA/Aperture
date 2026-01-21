@@ -107,22 +107,11 @@ def edit_code(filepath: str, framework: str, output_path: str = None):
         # get code language 
         language = file_endings[filepath.split(".")[-1]] 
         
-        # (temporary) - find the code framework 
-        match language: 
-            case "Python": 
-                framework = "Tkinter" 
-            case "JavaScript": 
-                framework = "React" 
-            case "TypeScript":
-                framework = "React" 
-            case _: 
-                framework = "React"
-
     prompt = f"""
-        You are an expert accessibility engineer.
-        Framework: {framework} ({language})
-        RULES: Extract x,y,width,height, description, type, and write out the line "<Type of UI> <X>, <Y>, <Width>, <Height>, <Description>" for each UI element in the code.
-        Only include elements that would be visible to a user (ignore layout elements).
+        You are an expert code analyzer.
+        Framework: {framework} (using {language})
+        RULES: Extract x,y,width,height, description, type, and write out the line "<Type of UI> <X>, <Y>, <Width>, <Height>, <Description/Text>, <Line Number of Code>" for each UI element in the code.
+        Only include elements that would be visible to a user, and ignore layout elements.
         ORIGINAL CODE START:
         {original_code}
         ORIGINAL CODE END
@@ -138,29 +127,31 @@ def edit_code(filepath: str, framework: str, output_path: str = None):
     print(f"Accessible version saved to {output_path}")
     return response
 
+def insert_ui_element_calls(llm_output: str, original_path: str):
+
+    # TSWO TASKS
+    # ONE: CREATE UI ELEMENTS.JSON
+    # TWO: INTERSERT SERVER CALS INTO CODE
+
+    with open(original_path, "r", encoding="utf-8") as f:
+        original = f.readlines()
+
+    for line, i in enumerate(original):
+        
+
+# NEED TP UPDATE THI FNCITON
 def edit_entry_point(entry_point_path: str):
-    file_extension = "." + entry_point_path.split(".")[1]
-    user_os = platform.system().lower()
-    user_os = "mac" if user_os == "darwin"
+    file_extension = "." + entry_point_path.split(".")[-1]
 
-    aperture_path = "/aperture_app"
-    match user_os:
-        case "windows":
-            aperture_path += ".exe"
-        case "mac":
-            aperture_path += ".app"
-        case "linux":
-            pass
-
-    to_insert = supported_json["languages"][file_extension][user_os]
-    to_insert = to_insert.replace("PATH_PLACEHOLDER", aperture_path)
+    to_insert = supported_json["languages"][file_extension]
 
     # TODO: add logic to not do duplicate imports
-    with open(file_path, "a", encoding="utf-8") as f: 
+    with open(entry_point_path, "r", encoding="utf-8") as f:
         contents = f.read()
         contents = to_insert + "\n\n" + contents
-
-
+    
+    with open(entry_point_path, "w", encoding="utf-8") as f:
+        f.write(contents)
 
 
 def edit_code_test(file_path):
