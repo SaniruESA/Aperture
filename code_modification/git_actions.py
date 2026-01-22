@@ -33,10 +33,6 @@ def authenticate_with_github():
     print(f"Code {user_code} copied to clipboard!")
     webbrowser.open(res["verification_uri"])
 
-
-
-    webbrowser.open(f"{base_url}?user_code={code}")
-
     device_code = res["device_code"]
     interval = res.get("interval", 5)
 
@@ -117,10 +113,9 @@ def stage_and_commit(repo_dir, commit_message="Added all accessibility features"
 
 
 # Create pull request
-def create_pull_request(repo_name, branch_name, base_branch="main", repo_dir="local_repo"):
+def create_pull_request(repo_name, branch_name, token, base_branch="main", repo_dir="local_repo"):
 
     # Get info about user and repo
-    token = authenticate_with_github()
     auth = Auth.Token(token)
     g = Github(auth=auth)
     test = g.get_user()
@@ -165,32 +160,3 @@ def create_pull_request(repo_name, branch_name, base_branch="main", repo_dir="lo
                 raise
     raise Exception("GitHub failed too many times.")
 
-
-# TODO:
-# Make it so that when you clone a repo, and it already there, it properly deletes (currently it just has a PermissionError)
-# Add functionality for this to use a seperate "accessibility" branch?
-# info() logs stuff
-# allow customizing the repo clone path
-
-
-# old
-
-#     # PUT THIs ON INFO LOG LTER
-#     """
-#     Quick guide to OAuth tokens with Github:
-#     1) Log in to Github on browser/desktop app
-#     2) On the top right of your screen, click "Settings"
-#     3) Navigate to "Developer Settings" -> "Personal Access Tokens"
-#     4) Click "Fine-Grained Tokens" and click "Generate New Token"
-#     5) Customize the shown fields as you wish
-#     6) Generate your token
-#     7) Add the following permissions to the token:
-        # -Repository:
-        #     -Contents (Read/Write)
-        #     -Metadata (Read)
-        #     -Pull requests (Read/Write)
-        # -Account
-        #     -Profile (Read/Write)
-#     """
-
-authenticate_with_github()
