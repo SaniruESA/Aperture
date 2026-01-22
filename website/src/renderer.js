@@ -1,6 +1,22 @@
-const src = document.getElementById('githublink')
+document.addEventListener('DOMContentLoaded', () => {
+  const input = document.getElementById('githublink')
 
-function handleOnChange({ target: { value }}) {
-    window.API.setName(value);
-}
-src.addEventListener('change', handleOnChange);
+  // scuffed validation checker
+  function isValid(value) {
+    if (!value) return false
+    const v = value.trim()
+    const ownerRepo = /^[^\/\s]+\/[^\/\s]+$/
+    return ownerRepo.test(v) || v.toLowerCase().includes('github.com/')
+  }
+
+  input.addEventListener('input', () => {
+    input.classList.remove('valid', 'invalid')
+    if (input.value === '') return
+    input.classList.add(isValid(input.value) ? 'valid' : 'invalid')
+  })
+
+  function handleOnChange({ target: { value }}) {
+      window.API.setName(value);
+  }
+  input.addEventListener('change', handleOnChange);
+})

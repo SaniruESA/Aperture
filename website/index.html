@@ -60,13 +60,17 @@
         padding: 12px 10px;
         margin: 8px 0;
         display: inline-block;
-        border: 2px solid #8B6B99; 
-        border-radius: 4px; 
+        border: 2px solid #8B6B99;
+        border-radius: 4px;
         box-sizing: border-box;
         background-color: #1b1b1b;
         font-size: 16px;
-        color:#b9a7bb
-    }
+        color: #b9a7bb;
+        transition: border-color 120ms ease, box-shadow 120ms ease;
+        outline: none;
+      }
+      .github-link.valid { border-color: #2d7a2d; box-shadow: 0 0 6px rgba(45,122,45,0.12); }
+      .github-link.invalid { border-color: #7a2d2d; box-shadow: 0 0 6px rgba(122,45,45,0.08); }
 
     @keyframes scroll {
       to { background-position: 40px 0px; }
@@ -79,7 +83,7 @@
     </div>
     <div class="side-scroll">
         <div class="enter-box">
-            <input type="text" id="githublink" class="github-link" placeholder="Enter a Github Repository...">
+            <input type="text" id="githublink" class="github-link" placeholder="owner/repo or https://github.com/owner/repo">
             <script src="src/renderer.js"></script>
         </div>
 
