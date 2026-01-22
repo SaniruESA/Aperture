@@ -1,3 +1,7 @@
 # Aperture
 
-Aperture is a software-augmenting tool that ensures blind and deaf people get equal access while using any software, automatically. Aperture is the first of its kind to give any program, including all apps and websites*, native accessibility through automated code editing that implements important assistive features such as keyboard navigation and voice commands. Aperture works directly with a software’s code, rather than reverse engineering with screen readers or subtitles, and it’s simply a matter of copy-pasting a GitHub link. By making API calls to a HuggingFace LLM (Qwen-Coder-30B), our software is able to edit entire codebases and make them accessible in minutes.
+Aperture is a software-augmenting tool that ensures blind and deaf people get equal access while using any software, automatically. Aperture is the first of its kind to give any program, including all apps and websites, native accessibility through automated code editing that implements important assistive features such as keyboard navigation and voice commands. Aperture works directly with a software’s code, rather than reverse engineering with screen readers or subtitles, and it’s simply a matter of copy-pasting a GitHub link. By making API calls to a HuggingFace LLM (Qwen-Coder-30B), our software is able to edit entire codebases and make them accessible in minutes.
+
+## Usage
+
+Navigate to the "download" folder (https://github.com/nicfanst/Aperture/tree/master/download), then download the correct executable for your operating system.

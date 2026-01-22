@@ -76,7 +76,7 @@
         "y": 240,
         "width": 200,
         "height": 25,
-        "description": "",
+        "description": "Technology, Business, Education, Entertainment, Other",
         "UItype": "Combobox",
         "shown": false
     },
@@ -203,6 +203,15 @@
         "width": 200,
         "height": 35,
         "description": "Start Progress",
+        "UItype": "Button",
+        "shown": false
+    },
+    "main.py_line195": {
+        "x": 30,
+        "y": 605,
+        "width": 130,
+        "height": 35,
+        "description": "Run Aperture",
         "UItype": "Button",
         "shown": false
     }
