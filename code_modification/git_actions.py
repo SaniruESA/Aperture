@@ -7,11 +7,15 @@ import requests
 import stat
 import webbrowser
 import pyperclip
+import shutil
 
+# Aperture project ID
 CLIENT_ID = "Ov23liV0UHREdct0ILC3"
 
+# Automated Github authentication
 def authenticate_with_github():
 
+    # Post json request
     res = requests.post(
         "https://github.com/login/device/code",
         headers={"Accept": "application/json"},
@@ -21,21 +25,22 @@ def authenticate_with_github():
         }
     ).json()
 
-    base_url = res["verification_uri"]
-    code = res["user_code"]
-
+    # Get user code from result request, copy to clipboard
     user_code = res["user_code"]
     pyperclip.copy(user_code)
 
     print("The GitHub authentication page will open shortly.")
     print(f"Your code ({user_code}) has already been copied to your clipboard, you just need to paste it.")
 
+    # Open Github authenticationpage on browser
     webbrowser.open(res["verification_uri"])
 
     device_code = res["device_code"]
     interval = res.get("interval", 5)
 
     while True:
+
+        # Post request for access token
         token_res = requests.post(
             "https://github.com/login/oauth/access_token",
             headers={"Accept": "application/json"},
@@ -46,16 +51,18 @@ def authenticate_with_github():
             }
         ).json()
 
+        # Get Github access token
         if "access_token" in token_res:
             return token_res["access_token"]
 
+        # Error handling, ignore pending authorization or too fast errors
         if token_res.get("error") not in ("authorization_pending", "slow_down"):
             raise RuntimeError(token_res)
 
         time.sleep(interval)
 
 # Error handler to delete read-only files
-def remove_readonly(func, path, exc_info):
+def remove_readonly(func, path, ex_info):
     os.chmod(path, stat.S_IWRITE)
     func(path)
 
@@ -65,8 +72,6 @@ def clone_repo(repo_url, clone_dir="local_repo"):
     # Delete a repo if it already exists
     if os.path.exists(clone_dir):
         print("Local repo clone exists, deleting and replacing")
-
-        import shutil
         shutil.rmtree(clone_dir, onexc=remove_readonly)
 
     # Clone repo into the directory provided
@@ -150,10 +155,11 @@ def create_pull_request(repo_name, branch_name, token, base_branch="main", repo_
             webbrowser.open(pr.html_url)
             return
 
+        # Exponential retry if server side error
         except GithubException as error:
             if error.status >= 500:
                 print(f"GitHub 500 error, retrying in {i*2} seconds.")
-                time.sleep(i)  # increasingly long backoff
+                time.sleep(i)
 
             # Raise error if it wasn't 500
             else:
