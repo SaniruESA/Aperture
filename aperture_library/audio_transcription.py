@@ -7,11 +7,11 @@ from . import ui
 # determine the executable to use based on user os
 match platform.system():
     case "Windows":
-        exe_path = "aperture_library/audio_transcription_tools/Aperture.exe"
+        exe_path = "aperture_library/audio_transcription_tools/win-x64/Aperture.exe"
     case "Linux":
-        exe_path = "aperture_library/audio_transcription_tools/Aperture"
+        exe_path = "aperture_library/audio_transcription_tools/linux-x64/Aperture"
     case "Darwin":
-        exe_path = "aperture_library/audio_transcription_tools/Aperture"
+        exe_path = "aperture_library/audio_transcription_tools/osx-arm64/Aperture"
 
 os.chmod(exe_path, 0o755)
 

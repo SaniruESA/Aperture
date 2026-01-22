@@ -87,4 +87,4 @@ def handle_command(cmd: dict):
 #                 pass
 
 if __name__ == "__main__":
-    edit_all_files("https://github.com/D3BaNaNa/qt-demo", "main.cpp", "Qt (QML + C++)")
+    edit_all_files("https://github.com/D3BaNaNa/flutter-test", "lib/main.dart", "Qt (QML + C++)")
