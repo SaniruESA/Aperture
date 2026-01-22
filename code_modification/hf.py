@@ -73,7 +73,8 @@ def detect_ui_elements(path:str):
                         "height": <the height value>,
                         "description": <the description value>,
                         "UItype": <the Type of UI value>
-                    }, ... // more ui objects for each ui elements
+                        "shown: false  // always just set to false
+                    }, ... // more ui objects for each ui element
                 }
                 
                 
@@ -127,6 +128,7 @@ def generate_server_send_function(path:str):
     prompt = f"""Generate a {language} function called server_send that does the equivalent of Python's socket.send().
     It should take in two arguments, one called content_type, one called content.
     The function should send this information in a json string formatted like: {{"type":CONTENT_TYPE,"content":CONTENT,...}}
+    This function should use port 8080 and the user's IP address.
     Return a version of the initially given code with this function added. DO NOT leave out any code in the output."""
 
     # Load file
@@ -168,7 +170,7 @@ def eof_server_call(path:str):
 
     # Make prompt
     prompt = f"""At the end of the file's execution, insert a function call for server_send()
-    Put the first argument as "EOF" and the second argument as {file_name}"""
+    Put the first argument as "UI_show" and the second argument as "EOF"."""
 
     # Load file
     with open(path,"r") as fp:
@@ -185,7 +187,7 @@ def handle_alerts(path:str):
 
     # Make prompt
     prompt = f"""Every time the code contains a potential audio-based alert or popup, insert a function call for server_send() 
-    The first argument should be "alert" and the second argument should be the textual content of the alert."""
+    The first argument should be "add_popup" and the second argument should be the textual content of the alert."""
 
     # Load file
     with open(path,"r") as fp:

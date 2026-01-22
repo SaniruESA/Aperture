@@ -7,14 +7,6 @@ import hf
 
 TOKEN = git_actions.authenticate_with_github()
 
-# TEMPORARY FUNCTION
-def edit_code_test(file_path):
-    with open(file_path, "r", encoding="utf-8") as f:
-        code = f.read()
-    modified_code = code + "1/17/26"
-    with open(file_path, "w", encoding="utf-8") as f:
-        f.write(modified_code)
-
 with open("supported.json", "r", encoding="utf-8") as file:
     supported_json = json.load(file)
 
@@ -36,6 +28,7 @@ def edit_all_files(repo_link: str, entry_point_path: str = "", framework: str = 
             pass
 
     with open("ui_elements.json", "w", encoding="utf-8") as fp:
+        full_ui_json["_type_b_count"] = len(frameworks[framework].get("type_b", []))
         json.dump(full_ui_json, fp, indent=2)
 
     # try running aperture helper if available
@@ -79,7 +72,7 @@ if __name__ == "__main__":
     # keep taking stuff from 
     if len(sys.argv) > 1:
         try:
-            repo = sys.argv[1]s
+            repo = sys.argv[1]
             entry = sys.argv[2] if len(sys.argv) > 2 else ""
             framework = sys.argv[3] if len(sys.argv) > 3 else ""
             testing = sys.argv[4].lower() == "true" if len(sys.argv) > 4 else True
