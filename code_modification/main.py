@@ -23,7 +23,7 @@ def paste_aperture_executable(os_used: str):
 
 
 # Goes through all files in a repo, and edits them
-def edit_all_files(repo_link: str, entry_point_path: str = "", framework: str = "", os_used: str = "", testing=False):
+def edit_all_files(repo_link: str, entry_point_path: str = "", framework: str = "", os_used: str = ""):
     git_actions.clone_repo(repo_link, clone_dir="local_repo")
 
     frameworks = supported_json.get("frameworks", {})
