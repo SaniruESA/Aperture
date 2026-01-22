@@ -15,6 +15,7 @@ from ..ui import popup
 from .. import voice_commands
 from .. import audio_transcription
 from .. import live_ui
+import socket
 
 BLANK_PACKET_MAXIMUM:int = 100 # Number of blank packets received before server will automatically shut off
 BLANK_PACKET_COUNT:int = 0 # Number of blank packets received
@@ -22,38 +23,7 @@ SERVER_ASYNC_THREAD:threading.Thread = None # Async thread for server
 PYGLET_ASYNC_THREAD:threading.Thread = None # Async thread for pyglet
 SERVER:Server # Last used server for tick
     
-def verify(server:Server,recv_json:dict):
-    """
-    Verify protocol for server
-    
-    Arguments:
-        server:
-            Server instance
-        recv_json:
-            Received json content
-    """
-    
-    # Extract code
-    recv_code = recv_json["content"]
-    
-    # Check if code is correct
-    if recv_code != server.verify_code_solved:
-        warn(f"Received code: {recv_code} is not the same as server code: {server.verify_code_solved}",__name__)
-        
-        # Send code
-        server.send('{"type":"verify","content":"FAILED"}')
-        return
-    
-    # Enable verified state
-    server.client_verified = True
-    
-    # Send code
-    server.send('{"type":"verify","content":"PASSED"}')
-    
-    # Notify that server is ready
-    info(f"Server verification passed",__name__)
-    
-def queue_generate_tts(server:Server,recv_json:dict):
+def queue_generate_tts(server:Server,recv_json:dict,conn:socket.socket):
     """
     Queues generation of text-to-speech
     
@@ -77,7 +47,7 @@ def queue_generate_tts(server:Server,recv_json:dict):
     server.tts_queue.generate(recv_json["content"],voice=recv_json["voice"],volume=recv_json["volume"],pitch=recv_json["pitch"],priority=recv_json["priority"],rate=recv_json["rate"])
 
     # Return back
-    server.send('{"type":"tts_queue","content":"Started"}')
+    server.send('{"type":"tts_queue","content":"Started"}',conn)
 
 def generate_button_tts(name:str,path:str):
     """
@@ -92,7 +62,7 @@ def generate_button_tts(name:str,path:str):
     
     asyncio.run(tts.generate_no_play(name,path=path))
     
-def add_button(server:Server,recv_json:dict):
+def add_button(server:Server,recv_json:dict,conn:socket.socket):
     """
     Adds a button to known server buttons for tab nav
     
@@ -115,9 +85,9 @@ def add_button(server:Server,recv_json:dict):
     threading.Thread(target=generate_button_tts,args=(name,path)).start()
     
     # Return back
-    server.send('{"type":"add_button","content":"Button has been added"}')
+    server.send('{"type":"add_button","content":"Button has been added"}',conn )
     
-def clear_button(server:Server,recv_json:dict):
+def clear_button(server:Server,recv_json:dict,conn:socket.socket):
     """
     Clears all buttons from the server
     
@@ -132,7 +102,7 @@ def clear_button(server:Server,recv_json:dict):
     server.keyboardtab.clearAllUIElements()
     
     # Return back
-    server.send('{"type":"add_button","content":"All buttons have been removed"}')
+    server.send('{"type":"add_button","content":"All buttons have been removed"}',conn)
     
 def add_missing(base:dict,example:dict):
     """
@@ -155,7 +125,7 @@ def add_missing(base:dict,example:dict):
     # Return fixed
     return base
 
-def add_popup(server:Server, recv_json:dict):
+def add_popup(server:Server, recv_json:dict, conn:socket.socket):
     
     # Add missing keys
     recv_json = add_missing(recv_json,{"text-color":(0,0,0),"background-color":settings.POPUP_DEFAULT_COLOR,"position":None})
@@ -164,7 +134,7 @@ def add_popup(server:Server, recv_json:dict):
     popup.add_popup({"text":recv_json["content"],"text-color":recv_json["text-color"],"background-color":recv_json["background-color"],"position":recv_json["position"]})
             
     # Send back
-    server.send('{"type":"add_popup","content":"Added popup"}')
+    server.send('{"type":"add_popup","content":"Added popup"}',conn)
 
 def _server_threaded(server:Server):
     """
@@ -189,7 +159,7 @@ def _server_threaded(server:Server):
     # Notify that thread was ended
     info("Server thread ended",__name__)
     
-def _tick_server_threaded(server:Server):
+def _tick_server_threaded(server:Server,conn:socket.socket):
     """
     Tick threaded server
     """
@@ -200,7 +170,7 @@ def _tick_server_threaded(server:Server):
     # Tick forever
     while server.is_alive:
         
-        tick(server)
+        tick(server,conn)
         
         # Notify that thread was ended
     info("Ended server ticking",__name__)
@@ -269,10 +239,8 @@ def start_threaded_server(server:Server):
     VOICE_ASYNC_THREAD.start()
     
     WINDOW = ui.Window(settings.DEFAULT_WINDOW_WIDTH,settings.DEFAULT_WINDOW_HEIGHT)
-    TICK_ASYNC_THREAD = threading.Thread(target=_tick_server_threaded,args=(server,))
-    TICK_ASYNC_THREAD.start()
     
-def tick(server:Server):
+def tick(server:Server,conn:socket.socket):
     """
     Tick server
     
@@ -285,13 +253,7 @@ def tick(server:Server):
     SERVER = server
 
     # Receive data
-    recv_data:str = server.recv()
-    
-    # If content is for help, show help menu and end
-    if recv_data.lower() == "help":
-        
-        server_help.help_menu(server,{})
-        return
+    recv_data:str = server.recv(conn)
         
     # Stop if data is blank
     if len(recv_data) == 0:
@@ -323,27 +285,14 @@ def tick(server:Server):
         error(f"Malformed json data: {recv_data}",__name__)
         
         # Return back error
-        server.send('{"type":"error","content":"Malformed JSON (send \"help\" for a help menu)"}')
+        server.send('{"type":"error","content":"Malformed JSON (send \"help\" for a help menu)"}',conn)
         return
     
     # Log that content was received
     info(f"Received content of type: ({content_type})",__name__)
     
-    # If content type is not for verification, and client is unverified, end
-    if (not server.client_verified) and content_type != "verify":
-        
-        error("Client is not yet verified",__name__)
-        
-        # Return back error
-        server.send('{"type":"error","content":"Client not yet verified (send \"help\" for a help menu)"}')
-        return
-    
     # Run different protocol based on type
     match content_type:
-        
-        # Verification
-        case "verify":
-            verify(server,recv_json)
             
         # Exiting
         case "exit":
@@ -352,7 +301,7 @@ def tick(server:Server):
             info("Client has ended connection, ending server",__name__)
             
             # Send final output
-            server.send('{"type":"close"}')
+            server.send('{"type":"close"}',conn)
             
             # Close
             server.is_alive = False
@@ -362,25 +311,25 @@ def tick(server:Server):
         case "generate_tts":
             
             # Queue generation
-            queue_generate_tts(server,recv_json)
+            queue_generate_tts(server,recv_json,conn)
             
         # Help message
         case "help":
             
             # Return help menu
-            server_help.help_menu(server,recv_json)
+            server_help.help_menu(server,recv_json,conn)
             
         # Adding button
         case "add_button":
             
             # Add a button to tab nav
-            add_button(server,recv_json)
+            add_button(server,recv_json,conn)
             
         # Clearing button
         case "clear_button":
             
             # Remove button from tab nav
-            clear_button(server,recv_json)
+            clear_button(server,recv_json,conn)
             
         # Updating window
         case "update_window":
@@ -394,26 +343,26 @@ def tick(server:Server):
             ui.window_stats = [x,y,w,h]
             
             # Send back
-            server.send('{"type":"update_window","content":"Window updated"}')
+            server.send('{"type":"update_window","content":"Window updated"}',conn)
         
         # Adding a popup
         case "add_popup":
             
-            add_popup(server,recv_json)
+            add_popup(server,recv_json,conn)
 
         case "show_transcription":
 
             audio_transcription.Queue.add_subtitle(recv_json["content"])
 
             # Send back
-            server.send('{"type":"show_transcription","content":"Transcription shown"}')
+            server.send('{"type":"show_transcription","content":"Transcription shown"}',conn)
 
         case "UI_show":
         
             live_ui.LiveUI.show_element(recv_json["content"])
 
             # Send back
-            server.send('{"type":"UI_show","content":"UI shown"}')
+            server.send('{"type":"UI_show","content":"UI shown"}',conn)
         
 
         # Unknown type
@@ -423,7 +372,7 @@ def tick(server:Server):
             error(f"Unknown type: {content_type}",__name__)
             
             # Return back error
-            server.send('{"type":"error","content":"Unknown type (send \"help\" for a help menu)"}')
+            server.send('{"type":"error","content":"Unknown type (send \"help\" for a help menu)"}',conn)
             
 def start_pyglet_server(server:Server):
     """
