@@ -28,9 +28,8 @@ def authenticate_with_github():
     pyperclip.copy(user_code)
 
     print("The GitHub authentication page will open shortly.")
-    print("Your code has already been copied to your clipboard, you just need to paste it.")
+    print(f"Your code ({user_code}) has already been copied to your clipboard, you just need to paste it.")
 
-    print(f"Code {user_code} copied to clipboard!")
     webbrowser.open(res["verification_uri"])
 
     device_code = res["device_code"]
@@ -148,6 +147,7 @@ def create_pull_request(repo_name, branch_name, token, base_branch="main", repo_
                 base=base_branch
             )
             print(f"Pull request created: {pr.html_url}")
+            webbrowser.open(pr.html_url)
             return
 
         except GithubException as error:
