@@ -127,9 +127,10 @@ def generate_server_send_function(path:str):
     # Make prompt
     prompt = f"""Generate a {language} function called server_send that does the equivalent of Python's socket.send().
     It should take in two arguments, one called content_type, one called content.
-    The function should send this information in a json string formatted like: {{"type":CONTENT_TYPE,"content":CONTENT,...}}
-    This function should use port 8080 and the user's IP address.
-    Return a version of the initially given code with this function added. DO NOT leave out any code in the output."""
+    The function should send this information in a json string formatted like: 
+    <bytes_length>\n{{"type":CONTENT_TYPE,"content":CONTENT,...}}
+    // where <bytes_length> is the length in bytes of the {{"type":CONTENT_TYPE,"content":CONTENT,...}} section.
+    This function should use port 8080 and the user's IP address."""
 
     # Load file
     with open(path,"r") as fp:
