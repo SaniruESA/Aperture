@@ -1,66 +1,19 @@
 {
     "frameworks": {
-        "Electron (React)": {
-            "file_extensions": ".jsx, .tsx"
-        },
-
         "Flutter": {
-            "file_extensions": ".dart"
+            "type_a": [".dart"],
+            "type_b": [".dart"]
         },
 
-        ".NET MAUI": {
-            "file_extensions": ".cs, .xaml"
-        },
-
-        "Tauri (React)": {
-            "file_extensions": ".jsx, .tsx"
-        },
-
-        "Qt (C++)": {
-            "file_extensions": ".cpp"
+        "Qt (QML + C++)": {
+            "type_a": [".qml", ".ui"],
+            "type_b": [".cpp", ".h", ".qml"]
         },
 
         "Tkinter": {
-            "file_extensions": ".py"
+            "type_a": [".py"],
+            "type_b": [".py"]
         }
 
-    },
-
-    "languages": {
-        ".py": {
-            "aperture_exc_code": "file_path = 'PATH_PLACEHOLDER'\nif os.name == 'nt':\n    file_path += '.exe'\nelif sys.platform == 'darwin':\n    file_path += '.app'\nif os.path.exists(file_path):\n    if os.name == 'nt':\n        subprocess.Popen([file_path])\n    elif sys.platform == 'darwin':\n        subprocess.Popen(['open', file_path])\n    else:\n        subprocess.Popen([file_path])\nelse:\n    print(f'File not found: {file_path}')",
-            "aperture_exc_libs": "import subprocess\nimport os\nimport sys",
-            "entry_point": ""
-        },
-        ".jsx": {
-            "aperture_exc_code": "let filePath = 'PATH_PLACEHOLDER';\nif (process.platform === 'win32') {\n    filePath += '.exe';\n} else if (process.platform === 'darwin') {\n    filePath += '.app';\n}\nif (fs.existsSync(filePath)) {\n    if (process.platform === 'win32') {\n        exec(`\"${filePath}\"`, (error) => {\n            if (error) console.error(`Error: ${error.message}`);\n        });\n    } else if (process.platform === 'darwin') {\n        exec(`open \"${filePath}\"`, (error) => {\n            if (error) console.error(`Error: ${error.message}`);\n        });\n    } else {\n        exec(`\"${filePath}\"`, (error) => {\n            if (error) console.error(`Error: ${error.message}`);\n        });\n    }\n} else {\n    console.log(`File not found: ${filePath}`);\n}",
-            "aperture_exc_libs": "import { exec } from 'child_process';\nimport fs from 'fs';",
-            "entry_point": ""
-        },
-        ".tsx": {
-            "aperture_exc_code": "let filePath: string = 'PATH_PLACEHOLDER';\nif (process.platform === 'win32') {\n    filePath += '.exe';\n} else if (process.platform === 'darwin') {\n    filePath += '.app';\n}\nif (fs.existsSync(filePath)) {\n    if (process.platform === 'win32') {\n        exec(`\"${filePath}\"`, (error) => {\n            if (error) console.error(`Error: ${error.message}`);\n        });\n    } else if (process.platform === 'darwin') {\n        exec(`open \"${filePath}\"`, (error) => {\n            if (error) console.error(`Error: ${error.message}`);\n        });\n    } else {\n        exec(`\"${filePath}\"`, (error) => {\n            if (error) console.error(`Error: ${error.message}`);\n        });\n    }\n} else {\n    console.log(`File not found: ${filePath}`);\n}",
-            "aperture_exc_libs": "import { exec } from 'child_process';\nimport fs from 'fs';",
-            "entry_point": ""
-        },
-        ".dart": {
-            "aperture_exc_code": "var filePath = 'PATH_PLACEHOLDER';\nif (Platform.isWindows) {\n    filePath += '.exe';\n} else if (Platform.isMacOS) {\n    filePath += '.app';\n}\nif (await File(filePath).exists()) {\n    if (Platform.isWindows) {\n        await Process.start(filePath, []);\n    } else if (Platform.isMacOS) {\n        await Process.start('open', [filePath]);\n    } else {\n        await Process.start(filePath, []);\n    }\n} else {\n    print('File not found: $filePath');\n}",
-            "aperture_exc_libs": "import 'dart:io';",
-            "entry_point": "void main() async"
-        },
-        ".cs": {
-            "aperture_exc_code": "string filePath = \"PATH_PLACEHOLDER\";\nif (Environment.OSVersion.Platform == PlatformID.Win32NT)\n{\n    filePath += \".exe\";\n}\nelse if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))\n{\n    filePath += \".app\";\n}\nif (File.Exists(filePath))\n{\n    if (Environment.OSVersion.Platform == PlatformID.Win32NT)\n    {\n        Process.Start(new ProcessStartInfo\n        {\n            FileName = filePath,\n            UseShellExecute = true\n        });\n    }\n    else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))\n    {\n        Process.Start(new ProcessStartInfo\n        {\n            FileName = \"open\",\n            Arguments = filePath,\n            UseShellExecute = true\n        });\n    }\n    else\n    {\n        Process.Start(new ProcessStartInfo\n        {\n            FileName = filePath,\n            UseShellExecute = true\n        });\n    }\n}\nelse\n{\n    Console.WriteLine($\"File not found: {filePath}\");\n}",
-            "aperture_exc_libs": "using System.Diagnostics;\nusing System.IO;\nusing System.Runtime.InteropServices;",
-            "entry_point": ""
-        },
-        ".xaml": {
-            "aperture_exc_code": "// XAML is markup only. Use C# code-behind:\nstring filePath = \"PATH_PLACEHOLDER\";\nif (Environment.OSVersion.Platform == PlatformID.Win32NT)\n{\n    filePath += \".exe\";\n}\nelse if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))\n{\n    filePath += \".app\";\n}\nif (File.Exists(filePath))\n{\n    if (Environment.OSVersion.Platform == PlatformID.Win32NT)\n    {\n        Process.Start(new ProcessStartInfo\n        {\n            FileName = filePath,\n            UseShellExecute = true\n        });\n    }\n    else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))\n    {\n        Process.Start(new ProcessStartInfo\n        {\n            FileName = \"open\",\n            Arguments = filePath,\n            UseShellExecute = true\n        });\n    }\n    else\n    {\n        Process.Start(new ProcessStartInfo\n        {\n            FileName = filePath,\n            UseShellExecute = true\n        });\n    }\n}\nelse\n{\n    Console.WriteLine($\"File not found: {filePath}\");\n}",
-            "aperture_exc_libs": "using System.Diagnostics;\nusing System.IO;\nusing System.Runtime.InteropServices;",
-            "entry_point": ""
-        },
-        ".cpp": {
-            "aperture_exc_code": "std::string filePath = \"PATH_PLACEHOLDER\";\n#ifdef _WIN32\nfilePath += \".exe\";\n#elif __APPLE__\nfilePath += \".app\";\n#endif\nif (std::filesystem::exists(filePath)) {\n#ifdef _WIN32\n    ShellExecuteA(NULL, \"open\", filePath.c_str(), NULL, NULL, SW_SHOWNORMAL);\n#elif __APPLE__\n    std::string command = \"open \\\"\" + filePath + \"\\\"\";\n    system(command.c_str());\n#else\n    pid_t pid = fork();\n    if (pid == 0) {\n        execl(filePath.c_str(), filePath.c_str(), (char*)NULL);\n    }\n#endif\n} else {\n    std::cout << \"File not found: \" << filePath << std::endl;\n}",
-            "aperture_exc_libs": "#include <iostream>\n#include <filesystem>\n#include <string>\n#ifdef _WIN32\n#include <windows.h>\n#else\n#include <cstdlib>\n#include <unistd.h>\n#endif",
-            "entry_point": "int main()"
-        }
-    }    
+    }
 }
