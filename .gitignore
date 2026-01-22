@@ -369,3 +369,5 @@ log.txt
 /temp
 /local_repo
 .env
+/dist
+/build
