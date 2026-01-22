@@ -18,12 +18,6 @@ def generate_client(port:int=8080,ip=server.DEFAULT_COMPUTER_IP) -> server.Clien
     # Generate
     CLIENT = server.Client(port=port,ip=ip)
     
-    # Verify
-    CLIENT.verify()
-    
-    # Wait for response
-    info(CLIENT.recv(),__name__)
-    
     return CLIENT
     
 def generate_tts(text:str="",voice:str="en-US-EmmaMultilingualNeural",rate:int=0,volume:int=0,pitch:int=0,priority:int=0) -> str:

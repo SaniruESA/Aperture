@@ -15,11 +15,15 @@ match platform.system():
 
 os.chmod(exe_path, 0o755)
 
-process = subprocess.Popen(
-    [exe_path],
-    stdout=subprocess.PIPE,
-    stderr=subprocess.PIPE
-)
+def start_process():
+    global process
+    process = subprocess.Popen(
+        [exe_path],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE
+    )
+    
+    threading.Thread(target=show_subtitles, daemon=True).start()
 
 def show_subtitles():
 
@@ -37,8 +41,6 @@ def show_subtitles():
         # see if process is finished
         if not byte_chunk:
             break
-    
-threading.Thread(target=show_subtitles, daemon=True).start()
 
 class Queue:
     def __init__(self):

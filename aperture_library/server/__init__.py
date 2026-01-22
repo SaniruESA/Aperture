@@ -12,31 +12,45 @@ import keyboard
 import pyglet
 from RealtimeSTT import AudioToTextRecorder
 from .. import settings
+import threading
 
 possible_server_types = Literal[socket.SOCK_STREAM,socket.SOCK_DGRAM] # Possible socket types
 DEFAULT_COMPUTER_IP = socket.gethostbyname(socket.gethostname()) # The machine ip of the running system
+    
+def generic_recv(sock:socket.socket):
+    
+    # Read and decode
+            
+    # Form header
+    header = ""
+    while "\n" not in header:
+        header += sock.recv(1).decode()
+        
+        if header == "":
+            raise Exception("Bad read")
+    header = header[:-1]
+    
+    # Get remaining data
+    remaining = int(header)
+    data = sock.recv(remaining)
+    
+    # Return with removed header
+    return data
 
-def solve_verify_code(verify_code:int):
-    """
-    Does math on verify code to make sure client and server modify code in the same way
+def generic_send(sock:socket.socket,data:str):
     
-    Argument:
-        verify_code:
-            Starting verify code
-    """
+    # Find length header
+    length = len(data)
     
-    # Do math
-    return int(((verify_code/2)*3)**2)
-    
+    # Encode and send
+    sock.send(f"{length}\n{data}".encode())
+
 class Server:
     
     server_socket:socket.socket
     port:int
     family:socket.AddressFamily
     ip:int
-    client_addr:str
-    client_conn:socket.socket
-    client_verified:bool = False
     tts_queue:Queue
     is_alive:bool = True
     recorder:AudioToTextRecorder
@@ -69,7 +83,7 @@ class Server:
             self.server_socket = socket.create_server((ip,port),family=family)
         except:
             critical("Do not try to make multiple servers on the same port",__name__)
-            quit()
+            os._exit(0)
 
         # Print output message  
         info(f"Server created at ip: {ip} and port: {port}",__name__)
@@ -97,22 +111,19 @@ class Server:
         """
         
         # Notify that connection is wait
-        info("SERVER IS READY",__name__)
+        info("Server waiting for accept",__name__)
         
         # Accept connection
-        self.client_conn,self.client_addr = self.server_socket.accept()
-        
-        # Generate verify code
-        self.verify_code = random.randint(0,10000)
-        self.verify_code_solved = solve_verify_code(self.verify_code)
-        
-        # Send connection verification
-        self.send('{"type":"verify","content":'+str(self.verify_code)+'}')
+        client_conn,client_addr = self.server_socket.accept()
         
         # Print output message
-        info(f"Server started connection to {self.client_addr} and started verify ({self.verify_code_solved})",__name__)
+        info(f"Server started connection to {client_addr}",__name__)
         
-    def send(self,data:str) -> None:
+        # Start thread
+        tick_async_thread = threading.Thread(target=server_ticker._tick_server_threaded,args=(self,client_conn),daemon=True)
+        tick_async_thread.start()
+        
+    def send(self,data:str,conn:socket.socket) -> None:
         """
         Sends data to server with automatic length header
         
@@ -121,36 +132,20 @@ class Server:
                 Data to send to server
         """
         
-        # Find length header
-        length = len(data)
+        generic_send(conn,data)
         
-        # Encode and send
-        self.client_conn.send(f"{length}\n{data}".encode())
-        
-    def recv(self,bufsize:int=1024) -> str:
+    def recv(self,conn:socket.socket) -> str:
         """
         Receives data from server
         
         Arguments:
-            bufsize:
-                Maximum amount of data to receive (This is overridden by length header)
+            conn:
+                Socket to recv from
         """
         
         try:
-            # Read and decode
-            data = self.client_conn.recv(bufsize).decode()
-            split_data = data.split("\n")
             
-            # Find length header
-            header = split_data[0]
-            
-            # Get remaining data (if applicable)
-            remaining = int(header)-bufsize-len(header)
-            if remaining > 0:
-                split_data.append(self.client_conn.recv())
-            
-            # Return with removed header
-            return "".join(split_data[1:])
+            return generic_recv(conn)
                     
         except ValueError as e:
             
@@ -161,11 +156,6 @@ class Server:
             return '{"type":"ERROR","content":"CORRUPT DATA"}'
             
         except:
-            
-            # Reset server to default state
-            self.client_addr = None
-            self.client_conn = None
-            self.client_verified = False
             
             # Print output message
             critical("Client has closed connection unexpectedly, ending server",__name__)
@@ -180,6 +170,10 @@ class Server:
             # Stop keyboard
             keyboard.clear_all_hotkeys()
             
+            # End
+            while not audio_transcription.process.poll():
+                audio_transcription.process.terminate()
+            os._exit(0)
     
     def __str__(self) -> str:
         
@@ -245,38 +239,11 @@ class Client:
             self.client_socket = socket.create_connection((ip,port))
         except:
             critical("Please make sure to start the server before running the client",__name__)
-            raise Exception("Server has not yet been initialized")
+
+            os._exit(0)
         
         # Print output message        
-        info(f"Client created at ip: {ip} and port: {port}",__name__)
-
-    def verify(self):
-        """
-        Verifies client to server after server has accepted
-        """
-        
-        # Receive json and load
-        data = self.recv()
-        try:
-            recv_json:dict = json.loads(data)
-        except:
-            critical(f"Corrupted recv data:\n{data}",__name__)
-            quit()
-        
-        # Make sure type is correct
-        if recv_json["type"] != "verify":
-            error(f"Invalid received type ({recv_json['type']})",__name__)
-        
-        # Convert verify code
-        verify_code = recv_json["content"]       
-        solved_verify_code = solve_verify_code(verify_code)
-        
-        # Send back
-        self.send('{"type":"verify","content":'+str(solved_verify_code)+'}')
-        
-        # Print output message
-        info(f"Client sent verify request to server ({solved_verify_code})",__name__)
-       
+        info(f"Client created at ip: {ip} and port: {port}",__name__) 
   
     def connect(self):
         """
@@ -298,11 +265,7 @@ class Client:
                 Data to send to server
         """
         
-        # Find length header
-        length = len(data)
-        
-        # Encode and send
-        self.client_socket.send(f"{length}\n{data}".encode())
+        generic_send(self.client_socket,data)
         
     def send_json(self,data:dict):
         """
@@ -331,30 +294,13 @@ class Client:
         # Recv server data
         return self.recv()
         
-    def recv(self,bufsize:int=1024):
+    def recv(self):
         """
         Receives data from server
-        
-        Arguments:
-            bufsize:
-                Maximum amount of data to receive (This is overridden by length header)
         """
         
         try:
-            # Read and decode
-            data = self.client_socket.recv(bufsize).decode()
-            split_data = data.split("\n")
-            
-            # Find length header
-            header = split_data[0]
-            
-            # Get remaining data (if applicable)
-            remaining = int(header)-bufsize-len(header)
-            if remaining > 0:
-                split_data.append(self.client_socket.recv())
-            
-            # Return with removed header
-            return "".join(split_data[1:])
+            return generic_recv(self.client_socket)
         
         except ValueError as e:
             
@@ -368,9 +314,8 @@ class Client:
             
             # Print output message
             critical("Server has closed connection unexpectedly, quitting program",__name__)
-            
-            # Exit program
-            quit()
+
+            os._exit(0)
         
     def __str__(self):
         
@@ -392,6 +337,19 @@ from . import server_ticker as server_ticker
 from .. import keyboard_nav
 from .. import audio_transcription
 
+def accept_thread(server:Server):
+    """
+    Constantly checks for new clients
+    
+    Arguments:
+        server:
+            The server to accept on
+    """
+    
+    # Accept forever
+    while True:
+        server.accept()
+
 # Method to easily start the server
 def fast_start(port:int=8080,ip:str=DEFAULT_COMPUTER_IP):
     """
@@ -401,9 +359,12 @@ def fast_start(port:int=8080,ip:str=DEFAULT_COMPUTER_IP):
     # Generate server
     new_server = Server(port=port,ip=ip)
     
-    # Accept client
-    new_server.accept()
+    # Accept client thread
+    threading.Thread(target=accept_thread,args=(new_server,),daemon=True).start()
 
+    # Start audio
+    audio_transcription.start_process()
+    
     # Start threading
     new_server.tick_threaded()
     new_server.tick_pyglet()
