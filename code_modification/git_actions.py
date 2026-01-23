@@ -1,11 +1,13 @@
 # DEPENDENCIES REQUIRED: stuff for PyGithub, GitPython
 from github import Github, Auth, GithubException
 from git import Repo
+import git as gitlib
 import os
 import time
 import requests
 import stat
 import webbrowser
+import json
 import pyperclip
 import shutil
 
@@ -32,8 +34,13 @@ def authenticate_with_github():
     print("The GitHub authentication page will open shortly.")
     print(f"Your code ({user_code}) has already been copied to your clipboard, you just need to paste it.")
 
-    # Open Github authenticationpage on browser
-    webbrowser.open(res["verification_uri"])
+    # Ask host (Electron) to open the Github authentication page
+    try:
+        # Print structured message that main process can parse
+        print(json.dumps({"action": "open_url", "url": res["verification_uri"]}), flush=True)
+    except Exception:
+        # Fallback: try to open directly
+        webbrowser.open(res["verification_uri"]) 
 
     device_code = res["device_code"]
     interval = res.get("interval", 5)
@@ -86,10 +93,19 @@ def stage_and_commit(repo_dir, commit_message="Added all accessibility features"
     repo = Repo(repo_dir)
     with repo.config_writer() as cw:
 
-        # Methods to ensure pushing large repos works
-        cw.set_value("http", "postBuffer", "524288000")
-        cw.set_value("core", "compression", "0")
-        cw.set_value("http", "sslVersion", "tlsv1.2")
+        # Methods to ensure pushing large repos works (increase buffers, reduce compression)
+        # Larger postBuffer helps reduce mid-transfer failures for big pushes
+        try:
+            cw.set_value("http", "postBuffer", "524288000")
+            cw.set_value("http", "version", "HTTP/1.1")
+        except Exception:
+            pass
+        try:
+            cw.set_value("core", "compression", "0")
+            cw.set_value("pack", "windowMemory", "100m")
+            cw.set_value("pack", "packSizeLimit", "100m")
+        except Exception:
+            pass
     new_branch = "accessibility-updates"
     origin = repo.remote(name=remote_name)
 
@@ -113,10 +129,34 @@ def stage_and_commit(repo_dir, commit_message="Added all accessibility features"
         print("No changes to commit") # TODO: replace with info()
         return False
 
-    # Push branch to GitHub
-    push_result = origin.push(refspec=f"{new_branch}:{new_branch}", force=True)
-    for info in push_result:
-        print("Push summary:", info.summary, "\nFlags:", info.flags)
+    # Run gc to reduce pack sizes and prepare repository for transfer
+    try:
+        repo.git.gc('--aggressive', '--prune=now')
+    except Exception:
+        pass
+
+    # Push branch to GitHub with retries/backoff to improve resilience against network/SSL glitches
+    push_success = False
+    last_exc = None
+    max_attempts = 4
+    for attempt in range(1, max_attempts + 1):
+        try:
+            push_result = origin.push(refspec=f"{new_branch}:{new_branch}", force=True)
+            for info in push_result:
+                print("Push summary:", info.summary, "\nFlags:", info.flags)
+            push_success = True
+            break
+        except gitlib.GitCommandError as e:
+            last_exc = e
+            print(f"Push attempt {attempt} failed: {e}")
+            # exponential backoff
+            time.sleep(attempt * 2)
+
+    if not push_success:
+        print("Push failed after retries.")
+        if last_exc:
+            # re-raise or print detailed error for upstream handling
+            raise last_exc
 
 
     return True
@@ -158,7 +198,10 @@ def create_pull_request(repo_name, branch_name, token, base_branch="main", repo_
                 base=base_branch
             )
             print(f"Pull request created: {pr.html_url}")
-            webbrowser.open(pr.html_url)
+            try:
+                print(json.dumps({"action": "open_url", "url": pr.html_url}), flush=True)
+            except Exception:
+                webbrowser.open(pr.html_url)
             return
 
         # Exponential retry if server side error

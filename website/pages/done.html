@@ -108,7 +108,6 @@
             <div id="log_box">
                 <p id="log">
                     <span class="complete">-Your codebase is currently being modified.</span><br>
-                    <span class="complete">-Your repo will open automatically in your browser when the pull request is sent.</span><br>
                     <span class="complete">-Expect it to take a few minutes.</span><br>
                 </p>
             </div>
@@ -118,5 +117,28 @@
                 Request Received!
             </h1>
         </div>
+        <div style="position: absolute; left:25%; top:380px; width:50%;">
+            <div id="doneBox" style="background:#1d2027;padding:12px;border-radius:8px;border:2px solid #8B6B99;color:#dfe6e9;box-shadow:0 6px 16px rgba(0,0,0,0.2);">
+                <div id="doneText">When the pull request is ready, visit the repository here:</div>
+                <a id="doneLink" href="#" target="_blank" style="color:#9fbef2;display:block;margin-top:8px;word-break:break-all"></a>
+            </div>
+        </div>
+        <script>
+        // wait for main to send the final repo url
+        if (window.API && window.API.onDone) {
+          window.API.onDone((url) => {
+            const a = document.getElementById('doneLink')
+            const t = document.getElementById('doneText')
+            if (!a) return
+            if (!url) {
+              t.textContent = 'Operation completed. No repository URL was provided.'
+              a.style.display = 'none'
+              return
+            }
+            a.href = url
+            a.textContent = url
+          })
+        }
+        </script>
     </body>
 </html>

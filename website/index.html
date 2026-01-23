@@ -117,6 +117,39 @@
         text-align: center;
       }
 
+      .links-box {
+        width: 70%;
+        margin: 12px auto 0 auto;
+        padding: 12px 14px;
+        background: #121416;
+        color: #dcdcdc;
+        border: 2px solid #6b5a7a;
+        border-radius: 6px;
+        font-size: 14px;
+        box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+        display: none;
+      }
+
+      .links-box a {
+        color: #9fbef2;
+        display: block;
+        margin: 6px 0;
+        word-break: break-all;
+      }
+
+      .auth-code {
+        width: 70%;
+        margin: 12px auto 0 auto;
+        padding: 10px 12px;
+        background: #1b1b1b;
+        color: #ffdca8;
+        border: 2px solid #8B6B99;
+        border-radius: 6px;
+        font-size: 16px;
+        text-align: center;
+        display: none;
+      }
+
     @keyframes scroll {
       to { background-position: 40px 0px; }
     }
@@ -128,8 +161,10 @@
     </div>
     <div class="side-scroll">
       <div class="info-box" id="infoBox" role="status" aria-live="polite">
-        You will be redirected to a couple browser pages to authenticate your HuggingFace and GitHub accounts. Your GitHub verification code has been copied to your clipboard.
+        Please click the link below to authenticate your HuggingFace / GitHub accounts (there will be two links that appear, one at a time). Your GitHub verification code has been copied to your clipboard.
       </div>
+      <div id="linksBox" class="links-box" aria-live="polite"></div>
+      <div id="authCodeBox" class="auth-code" aria-live="polite"></div>
         <div class="enter-box">
           <input type="text" id="githublink" class="github-link" placeholder="owner/repo or https://github.com/owner/repo">
           <input type="text" id="entrypoint" class="github-link" placeholder="entry point (e.g. main.py)">

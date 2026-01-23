@@ -13,5 +13,16 @@
   "devDependencies": {
     "electron": "^39.2.7",
     "electron-builder": "^24.6.0"
+  },
+  "build": {
+    "extraResources": [
+      {
+        "from": "build/python",
+        "to": "python",
+        "filter": [
+          "**/*"
+        ]
+      }
+    ]
   }
 }

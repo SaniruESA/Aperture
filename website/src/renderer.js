@@ -81,6 +81,35 @@ document.addEventListener('DOMContentLoaded', () => {
     })
   }
 
+  // receive extracted auth links
+  if (window.API && window.API.onLinks) {
+    window.API.onLinks((links) => {
+      const box = document.getElementById('linksBox')
+      if (!box) return
+      box.innerHTML = ''
+      links.forEach(u => {
+        const a = document.createElement('a')
+        a.href = u
+        a.textContent = u
+        a.target = '_blank'
+        box.appendChild(a)
+      })
+      box.style.display = links.length ? 'block' : 'none'
+    })
+  }
+
+  // receive auth code
+  if (window.API && window.API.onAuthCode) {
+    window.API.onAuthCode((code) => {
+      const box = document.getElementById('authCodeBox')
+      if (!box) return
+      box.textContent = `Authentication code: ${code}`
+      box.style.display = 'block'
+      // make sure inputs are enabled so user can paste code
+      setInputsDisabled(false)
+    })
+  }
+
   function showError(msg) {
     const box = document.getElementById('errorBox')
     if (!box) return

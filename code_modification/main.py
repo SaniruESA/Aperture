@@ -10,6 +10,11 @@ import platform
 with open("supported.json", "r", encoding="utf-8") as file:
     supported_json = json.load(file)
 
+try:
+    token = git_actions.authenticate_with_github()
+except Exception:
+    token = None
+    traceback.print_exc(file=sys.stderr)
 
 def paste_aperture_executable(os_used: str):
 
@@ -25,13 +30,7 @@ def paste_aperture_executable(os_used: str):
 
 
 # Goes through all files in a repo, and edits them
-def edit_all_files(repo_link: str, entry_point_path: str = "", framework: str = "", os_used: str = ""):
-
-    try:
-        token = git_actions.authenticate_with_github()
-    except Exception:
-        token = None
-        traceback.print_exc(file=sys.stderr)
+def edit_all_files(repo_link: str, entry_point_path: str = "", framework: str = "", os_used: str = "", testing: bool = False):
 
     
     git_actions.clone_repo(repo_link, clone_dir="local_repo")
@@ -100,34 +99,36 @@ def handle_command(cmd: dict):
 
 
 if __name__ == "__main__":
-    edit_all_files("https://github.com/D3BaNaNa/test-1", "main.py", "Tkinter")
-    # # keep taking stuff from 
-    # if len(sys.argv) > 1:
-    #     try:
-    #         repo = sys.argv[1]
-    #         entry = sys.argv[2] if len(sys.argv) > 2 else ""
-    #         framework = sys.argv[3] if len(sys.argv) > 3 else ""
-    #         testing = sys.argv[4].lower() == "true" if len(sys.argv) > 4 else True
-    #         edit_all_files(repo, entry, framework, testing=testing)
-    #         print(json.dumps({"status": "ok", "mode": "cli", "repo": repo}), flush=True)
-    #     except Exception as e:
-    #         traceback.print_exc(file=sys.stderr)
-    #         sys.stderr.flush()
-    #         print(json.dumps({"status": "error", "error": str(e)}), flush=True)
-    # else:
-    #     # keep reading otherwise
-    #     for line in sys.stdin:
-    #         line = line.strip()
-    #         if not line:
-    #             continue
-    #         try:
-    #             cmd = json.loads(line)
-    #         except json.JSONDecodeError:
-    #             print(json.dumps({"status": "error", "error": "invalid_json"}), flush=True)
-    #             continue
-    #         try:
-    #             handle_command(cmd)
-    #         except Exception as e:
-    #             traceback.print_exc(file=sys.stderr)
-    #             sys.stderr.flush()
-    #             print(json.dumps({"status": "error", "error": str(e)}), flush=True)
+    # If CLI args provided, run once (CLI mode)
+    if len(sys.argv) > 1:
+        try:
+            repo = sys.argv[1]
+            entry = sys.argv[2] if len(sys.argv) > 2 else ""
+            framework = sys.argv[3] if len(sys.argv) > 3 else ""
+            testing = sys.argv[4].lower() == "true" if len(sys.argv) > 4 else True
+            edit_all_files(repo, entry, framework, testing=testing)
+            print(json.dumps({"status": "ok", "mode": "cli", "repo": repo}), flush=True)
+        except Exception as e:
+            traceback.print_exc(file=sys.stderr)
+            sys.stderr.flush()
+            print(json.dumps({"status": "error", "error": str(e)}), flush=True)
+    else:
+        # Run as a long-running child process: read JSON commands from stdin
+        try:
+            for line in sys.stdin:
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    cmd = json.loads(line)
+                except json.JSONDecodeError:
+                    print(json.dumps({"status": "error", "error": "invalid_json"}), flush=True)
+                    continue
+                try:
+                    handle_command(cmd)
+                except Exception as e:
+                    traceback.print_exc(file=sys.stderr)
+                    sys.stderr.flush()
+                    print(json.dumps({"status": "error", "error": str(e)}), flush=True)
+        except Exception:
+            traceback.print_exc(file=sys.stderr)

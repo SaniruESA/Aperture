@@ -1,4 +1,4 @@
-import hashlib, base64, secrets, webbrowser, requests, socket
+import hashlib, base64, secrets, webbrowser, requests, socket, json
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from urllib.parse import urlparse, parse_qs
 
@@ -67,8 +67,13 @@ def get_token_pipeline():
         "code_challenge_method": "S256"
     }
 
-    # Open HF authorization page on browser
-    webbrowser.open(f"{"https://huggingface.co/oauth/authorize"}?{requests.compat.urlencode(params)}")
+    # Build HF authorization page URL
+    auth_url = "https://huggingface.co/oauth/authorize" + "?" + requests.compat.urlencode(params)
+    # Ask host to open the external URL (Electron main will open it). Fallback to webbrowser.open.
+    try:
+        print(json.dumps({"action": "open_url", "url": auth_url}), flush=True)
+    except Exception:
+        webbrowser.open(auth_url)
 
     # Catch callback
     server = HTTPServer(("localhost", port), CallbackHandler)
