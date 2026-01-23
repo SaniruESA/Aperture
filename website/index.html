@@ -25,20 +25,22 @@
         box-shadow: 0 6px 16px rgba(0,0,0,0.3);
     }
     .enter-box {
-        margin-top: calc(50vh - 50px);
-        margin-left: auto;
-        margin-right: auto;
-        width: 70%;
-        height: 40px;
-        background-color: #713988;
-        display: flex;
-        align-items: center;      
-        justify-content: center;  
-        color: rgb(255, 255, 255);
-        font-size: 32px;
-        font-weight: bold;    
-        border-radius: 4px;
-        box-shadow: 0 6px 16px rgba(0,0,0,0.3);
+      margin-top: calc(40vh - 50px);
+      margin-left: auto;
+      margin-right: auto;
+      width: 70%;
+      padding: 18px;
+      background-color: #713988;
+      display: flex;
+      flex-direction: column;
+      align-items: center;      
+      justify-content: center;  
+      color: rgb(255, 255, 255);
+      font-size: 32px;
+      font-weight: bold;    
+      border-radius: 4px;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.3);
+      gap: 8px;
     }
     .side-scroll {
         width: 100%;
@@ -47,7 +49,7 @@
             45deg,
             transparent 2px,
             transparent 15px, /* change this */
-            #211421 15px, /* and change this to make the lines thicker/thinner */
+            #211421 15px,
             #211421 30px
         );
         background-size: 40px 40px;
@@ -72,6 +74,49 @@
       .github-link.valid { border-color: #2d7a2d; box-shadow: 0 0 6px rgba(45,122,45,0.12); }
       .github-link.invalid { border-color: #7a2d2d; box-shadow: 0 0 6px rgba(122,45,45,0.08); }
 
+      .run-btn {
+        padding: 10px 16px;
+        border-radius: 6px;
+        border: none;
+        background: #2d7a2d;
+        color: white;
+        cursor: pointer;
+        font-size: 16px;
+      }
+
+      .run-btn:disabled {
+        background: #6b6b6b;
+        cursor: not-allowed;
+        opacity: 0.7;
+      }
+
+      .error-box {
+        width: 70%;
+        margin: 8px auto 0 auto;
+        padding: 12px 14px;
+        background: #2b1a1a;
+        color: #ff8b8b;
+        border: 2px solid #7a2d2d;
+        border-radius: 6px;
+        font-size: 14px;
+        display: none;
+        box-shadow: 0 6px 16px rgba(0,0,0,0.3);
+      }
+
+      .info-box {
+        width: 70%;
+        margin: 20px auto 0 auto;
+        padding: 14px 16px;
+        background: #1d2027;
+        color: #e6e6e6;
+        border: 2px solid #8B6B99;
+        border-radius: 8px;
+        font-size: 15px;
+        line-height: 1.4;
+        box-shadow: 0 6px 16px rgba(0,0,0,0.28);
+        text-align: center;
+      }
+
     @keyframes scroll {
       to { background-position: 40px 0px; }
     }
@@ -79,12 +124,19 @@
   </head>
   <body style="background-color: #200f20;">
     <div class="title-box">
-    Welcome, [User]
+    Welcome to Aperture!
     </div>
     <div class="side-scroll">
+      <div class="info-box" id="infoBox" role="status" aria-live="polite">
+        You will be redirected to a couple browser pages to authenticate your HuggingFace and GitHub accounts. Your GitHub verification code has been copied to your clipboard.
+      </div>
         <div class="enter-box">
-            <input type="text" id="githublink" class="github-link" placeholder="owner/repo or https://github.com/owner/repo">
-            <script src="src/renderer.js"></script>
+          <input type="text" id="githublink" class="github-link" placeholder="owner/repo or https://github.com/owner/repo">
+          <input type="text" id="entrypoint" class="github-link" placeholder="entry point (e.g. main.py)">
+          <input type="text" id="framework" class="github-link" placeholder="framework (e.g. Tkinter)">
+            <button id="runBtn" class="run-btn" disabled>Run</button>
+          <div id="errorBox" class="error-box" role="alert" aria-live="polite"></div>
+          <script src="src/renderer.js"></script>
         </div>
 
     </div>

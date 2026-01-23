@@ -106,7 +106,7 @@ def run_aperture_code(path:str):
     # Make prompt
     prompt = f"""Generate a {language} function called aperture_runner that runs either an .exe, .app, or extensionless file if the user is on Windows, Mac, or Linux, respectively.
     You must check the OS of the user during the runtime of the code to determine which one to run.
-    The path of the will always be in the format "./Aperture" followed by the file extension, if applicable."""
+    The path of the will always be in the format "./aperture" followed by the file extension, if applicable."""
 
     # Load file
     with open(path,"r") as fp:

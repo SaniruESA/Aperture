@@ -1,0 +1,164 @@
+{
+    "main.py_line10": {
+        "x": 0,
+        "y": 0,
+        "width": 300,
+        "height": 400,
+        "description": "Calculator window",
+        "UItype": "Window",
+        "shown": false
+    },
+    "main.py_line16": {
+        "x": 0,
+        "y": 10,
+        "width": 300,
+        "height": 50,
+        "description": "Display field for calculator",
+        "UItype": "Entry",
+        "shown": false
+    },
+    "main.py_line25": {
+        "x": 0,
+        "y": 70,
+        "width": 50,
+        "height": 50,
+        "description": "Button 7",
+        "UItype": "Button",
+        "shown": false
+    },
+    "main.py_line26": {
+        "x": 55,
+        "y": 70,
+        "width": 50,
+        "height": 50,
+        "description": "Button 8",
+        "UItype": "Button",
+        "shown": false
+    },
+    "main.py_line27": {
+        "x": 110,
+        "y": 70,
+        "width": 50,
+        "height": 50,
+        "description": "Button 9",
+        "UItype": "Button",
+        "shown": false
+    },
+    "main.py_line28": {
+        "x": 165,
+        "y": 70,
+        "width": 50,
+        "height": 50,
+        "description": "Button /",
+        "UItype": "Button",
+        "shown": false
+    },
+    "main.py_line29": {
+        "x": 0,
+        "y": 125,
+        "width": 50,
+        "height": 50,
+        "description": "Button 4",
+        "UItype": "Button",
+        "shown": false
+    },
+    "main.py_line30": {
+        "x": 55,
+        "y": 125,
+        "width": 50,
+        "height": 50,
+        "description": "Button 5",
+        "UItype": "Button",
+        "shown": false
+    },
+    "main.py_line31": {
+        "x": 110,
+        "y": 125,
+        "width": 50,
+        "height": 50,
+        "description": "Button 6",
+        "UItype": "Button",
+        "shown": false
+    },
+    "main.py_line32": {
+        "x": 165,
+        "y": 125,
+        "width": 50,
+        "height": 50,
+        "description": "Button *",
+        "UItype": "Button",
+        "shown": false
+    },
+    "main.py_line33": {
+        "x": 0,
+        "y": 180,
+        "width": 50,
+        "height": 50,
+        "description": "Button 1",
+        "UItype": "Button",
+        "shown": false
+    },
+    "main.py_line34": {
+        "x": 55,
+        "y": 180,
+        "width": 50,
+        "height": 50,
+        "description": "Button 2",
+        "UItype": "Button",
+        "shown": false
+    },
+    "main.py_line35": {
+        "x": 110,
+        "y": 180,
+        "width": 50,
+        "height": 50,
+        "description": "Button 3",
+        "UItype": "Button",
+        "shown": false
+    },
+    "main.py_line36": {
+        "x": 165,
+        "y": 180,
+        "width": 50,
+        "height": 50,
+        "description": "Button -",
+        "UItype": "Button",
+        "shown": false
+    },
+    "main.py_line37": {
+        "x": 0,
+        "y": 235,
+        "width": 50,
+        "height": 50,
+        "description": "Button C",
+        "UItype": "Button",
+        "shown": false
+    },
+    "main.py_line38": {
+        "x": 55,
+        "y": 235,
+        "width": 50,
+        "height": 50,
+        "description": "Button 0",
+        "UItype": "Button",
+        "shown": false
+    },
+    "main.py_line39": {
+        "x": 110,
+        "y": 235,
+        "width": 50,
+        "height": 50,
+        "description": "Button =",
+        "UItype": "Button",
+        "shown": false
+    },
+    "main.py_line40": {
+        "x": 165,
+        "y": 235,
+        "width": 50,
+        "height": 50,
+        "description": "Button +",
+        "UItype": "Button",
+        "shown": false
+    }
+}

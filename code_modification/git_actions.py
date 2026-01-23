@@ -84,6 +84,12 @@ def stage_and_commit(repo_dir, commit_message="Added all accessibility features"
 
     # Stage and commit changes
     repo = Repo(repo_dir)
+    with repo.config_writer() as cw:
+
+        # Methods to ensure pushing large repos works
+        cw.set_value("http", "postBuffer", "524288000")
+        cw.set_value("core", "compression", "0")
+        cw.set_value("http", "sslVersion", "tlsv1.2")
     new_branch = "accessibility-updates"
     origin = repo.remote(name=remote_name)
 

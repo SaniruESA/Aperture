@@ -26,9 +26,23 @@ function startPythonProcess() {
             mainWindow.loadFile(path.join(__dirname, '..', 'done.html'))
           }
         }
+        if (obj.status === 'error') {
+          const msg = obj.error || JSON.stringify(obj)
+          console.error('[python reported error]', msg)
+          if (mainWindow && !mainWindow.isDestroyed()) {
+            // go back to index and notify
+            mainWindow.loadFile('index.html').then(() => {
+              mainWindow.webContents.send('app-error', msg)
+            }).catch(() => {
+              mainWindow.webContents.send('app-error', msg)
+            })
+          }
+        }
 
       } catch (e) {
-      
+        // non-json line from python — log and forward as generic error
+        const text = line
+        console.log('[python stdout non-json]', text)
       }
     })
   })
@@ -37,15 +51,45 @@ function startPythonProcess() {
   pythonProcess.stderr.on('data', chunk => {
     chunk.toString().split(/\r?\n/).filter(Boolean).forEach(line => {
       console.error(`[python error] ${line}`)
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        try {
+          mainWindow.loadFile('index.html').then(() => {
+            mainWindow.webContents.send('app-error', line)
+          }).catch(() => {
+            mainWindow.webContents.send('app-error', line)
+          })
+        } catch (_) {
+          // swallow
+        }
+      }
     })
   })
 
   pythonProcess.on('error', err => {
     console.error('error:', err)
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      try {
+        mainWindow.loadFile('index.html').then(() => {
+          mainWindow.webContents.send('app-error', String(err))
+        }).catch(() => {
+          mainWindow.webContents.send('app-error', String(err))
+        })
+      } catch (_) {}
+    }
   })
 
   pythonProcess.on('close', code => {
     console.log(`Python exited with code ${code}`)
+    if (code !== 0 && mainWindow && !mainWindow.isDestroyed()) {
+      try {
+        const msg = `Python exited with code ${code}`
+        mainWindow.loadFile('index.html').then(() => {
+          mainWindow.webContents.send('app-error', msg)
+        }).catch(() => {
+          mainWindow.webContents.send('app-error', msg)
+        })
+      } catch (_) {}
+    }
   })
 }
 
@@ -59,7 +103,7 @@ ipcMain.handle("run-edit-all", async (_event, params) => {
 
     // show loading page immediately
     if (mainWindow && !mainWindow.isDestroyed()) {
-      mainWindow.loadFile(path.join(__dirname, '..', 'pages', 'loading.html')).catch(err => {
+      await mainWindow.loadFile(path.join(__dirname, '..', 'pages', 'loading.html')).catch(err => {
         console.error('Failed to load stuff', err)
       })
     }
@@ -69,6 +113,15 @@ ipcMain.handle("run-edit-all", async (_event, params) => {
     return { status: 'sent' }
   } catch (err) {
     console.error('Failed to send to python:', err)
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      try {
+        mainWindow.loadFile('index.html').then(() => {
+          mainWindow.webContents.send('app-error', String(err))
+        }).catch(() => {
+          mainWindow.webContents.send('app-error', String(err))
+        })
+      } catch (_) {}
+    }
     return { status: 'error', message: String(err) }
   }
 })

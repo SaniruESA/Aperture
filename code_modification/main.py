@@ -4,17 +4,22 @@ import json
 import sys
 import traceback
 import shutil
+import hf
+import platform
 
 with open("supported.json", "r", encoding="utf-8") as file:
     supported_json = json.load(file)
 
 
 def paste_aperture_executable(os_used: str):
+
+    os_used = platform.system().lower()
+
     match os_used:
-        case "Windows":
-            shutil.copy("../lib_build/aperture.exe", "local_repo")
-        case "Darwin":
-            shutil.copy("../lib_build/aperture", "local_repo")
+        case "windows":
+            shutil.copy("lib_build/aperture.exe", "local_repo")
+        case "darwin":
+            shutil.copy("lib_build/aperture", "local_repo")
 
 
 
@@ -22,15 +27,22 @@ def paste_aperture_executable(os_used: str):
 # Goes through all files in a repo, and edits them
 def edit_all_files(repo_link: str, entry_point_path: str = "", framework: str = "", os_used: str = ""):
 
+    try:
+        token = git_actions.authenticate_with_github()
+    except Exception:
+        token = None
+        traceback.print_exc(file=sys.stderr)
+
+    
     git_actions.clone_repo(repo_link, clone_dir="local_repo")
 
-    # frameworks = supported_json.get("frameworks", {})
-    # if framework and framework in frameworks:
-    #     type_a = tuple(frameworks[framework].get("type_a", []))
-    #     type_b = tuple(frameworks[framework].get("type_b", []))
-    # else:
-    #     type_a = tuple()
-    #     type_b = tuple()
+    frameworks = supported_json.get("frameworks", {})
+    if framework and framework in frameworks:
+        type_a = tuple(frameworks[framework].get("type_a", []))
+        type_b = tuple(frameworks[framework].get("type_b", []))
+    else:
+        type_a = tuple()
+        type_b = tuple()
 
     # generating ui_elements.json
     full_ui_json = {}
@@ -38,20 +50,19 @@ def edit_all_files(repo_link: str, entry_point_path: str = "", framework: str = 
     for root, _, files in os.walk("local_repo"):
         for file in files:
 
-            # if file.endswith(type_a):
-            response = hf.detect_ui_elements(f"local_repo/{file}")
+            if file.endswith(type_a):
+                response = hf.detect_ui_elements(f"local_repo/{file}")
 
-            for key, value in response.items():
-                full_ui_json[key] = value
+                for key, value in response.items():
+                    full_ui_json[key] = value
 
-    with open("ui_elements.json","w") as fp:
+    with open("local_repo/ui_elements.json","w") as fp:
         json.dump(full_ui_json, fp, indent=4)
 
     # run aperture helper only if an entry point is provided
     if entry_point_path:
         try:
             # import hf lazily to avoid triggering any HF login at module import
-            import hf
             hf.run_aperture_code(os.path.join("local_repo", entry_point_path))
         except Exception:
             traceback.print_exc(file=sys.stderr)
@@ -59,19 +70,14 @@ def edit_all_files(repo_link: str, entry_point_path: str = "", framework: str = 
     for root, _, files in os.walk("local_repo"):
         for file in files:
 
-            # if file.endswith(type_b):
-            hf.generate_server_send_function(f"local_repo/{file}")
-            hf.handle_conditional_ui(f"local_repo/{file}", full_ui_json)
-            hf.eof_server_call(f"local_repo/{file}")
-            hf.handle_alerts(f"local_repo/{file}")
+            if file.endswith(type_b):
+                hf.generate_server_send_function(f"local_repo/{file}")
+                hf.handle_conditional_ui(f"local_repo/{file}", full_ui_json)
+                hf.eof_server_call(f"local_repo/{file}")
+                hf.handle_alerts(f"local_repo/{file}")
+
 
     paste_aperture_executable(os_used)
-
-    try:
-        token = git_actions.authenticate_with_github()
-    except Exception:
-        token = None
-        traceback.print_exc(file=sys.stderr)
 
     repo_name = repo_link.split("/")[-1].split(".")[0]
     git_actions.create_pull_request(repo_name=repo_name,
@@ -94,7 +100,7 @@ def handle_command(cmd: dict):
 
 
 if __name__ == "__main__":
-    edit_all_files("https://github.com/D3BaNaNa/tkinter-test", "main.py", "Tkinter")
+    edit_all_files("https://github.com/D3BaNaNa/test-1", "main.py", "Tkinter")
     # # keep taking stuff from 
     # if len(sys.argv) > 1:
     #     try:
