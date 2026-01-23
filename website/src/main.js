@@ -52,9 +52,24 @@ function startPythonProcess() {
 ipcMain.handle("run-edit-all", async (_event, params) => {
   try {
     if (!pythonProcess || pythonProcess.killed || pythonProcess.exitCode !== null) startPythonProcess()
+
+    if (!pythonProcess || !pythonProcess.stdin || !pythonProcess.stdin.writable) {
+      throw new Error('could not write to python')
+    }
+
+    // show loading page immediately
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.loadFile(path.join(__dirname, '..', 'pages', 'loading.html')).catch(err => {
+        console.error('Failed to load stuff', err)
+      })
+    }
+
+    // send command to python
     pythonProcess.stdin.write(JSON.stringify({ action: "run_edit_all", ...params }) + "\n")
     return { status: 'sent' }
   } catch (err) {
+    console.error('Failed to send to python:', err)
+    return { status: 'error', message: String(err) }
   }
 })
 

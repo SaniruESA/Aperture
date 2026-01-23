@@ -3,10 +3,7 @@ import os
 import json
 import sys
 import traceback
-import hf
-import shutil
 
-TOKEN = git_actions.authenticate_with_github()
 
 with open("supported.json", "r", encoding="utf-8") as file:
     supported_json = json.load(file)
@@ -24,7 +21,7 @@ def paste_aperture_executable(os: str):
 
 
 # Goes through all files in a repo, and edits them
-def edit_all_files(repo_link: str, entry_point_path: str = "", framework: str = "", os: str = "", testing=False):
+def edit_all_files(repo_link: str, entry_point_path: str = "", framework: str = "", target_os: str = "", testing=False):
     git_actions.clone_repo(repo_link, clone_dir="local_repo")
 
     frameworks = supported_json.get("frameworks", {})
@@ -50,8 +47,14 @@ def edit_all_files(repo_link: str, entry_point_path: str = "", framework: str = 
     with open("ui_elements.json","w") as fp:
         json.dump(full_ui_json, fp, indent=4)
 
-    # Code to run Aperture executable
-    hf.run_aperture_code(os.path.join("local_repo", entry_point_path))
+    # run aperture helper only if an entry point is provided
+    if entry_point_path:
+        try:
+            # import hf lazily to avoid triggering any HF login at module import
+            import hf
+            hf.run_aperture_code(os.path.join("local_repo", entry_point_path))
+        except Exception:
+            traceback.print_exc(file=sys.stderr)
 
     for root, _, files in os.walk("local_repo"):
         for file in files:
@@ -64,9 +67,16 @@ def edit_all_files(repo_link: str, entry_point_path: str = "", framework: str = 
 
     paste_aperture_executable(os)
 
-    # Extract repo name and create PR
+    try:
+        token = git_actions.authenticate_with_github()
+    except Exception:
+        token = None
+        traceback.print_exc(file=sys.stderr)
+
     repo_name = repo_link.split("/")[-1].split(".")[0]
-    git_actions.create_pull_request(repo_name=repo_name, branch_name="accessibility-updates", token=TOKEN)
+    git_actions.create_pull_request(repo_name=repo_name,
+                                    branch_name="accessibility-updates",
+                                    token=token)
 
 
 # This will have multiple conditions later, just one communication for now
