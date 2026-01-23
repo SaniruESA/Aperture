@@ -9,19 +9,18 @@ with open("supported.json", "r", encoding="utf-8") as file:
     supported_json = json.load(file)
 
 
-def paste_aperture_executable(os: str):
-    match os:
+def paste_aperture_executable(os_used: str):
+    match os_used:
         case "Windows":
-            shutil.copy("../dist/Aperture.exe", "local_repo")
-        case "Mac":
-            shutil.copy("../dist/Aperture", "local_repo")
-            # TODO: ^^^^^^^^^^^ CHECK RIGHT FIL NAMMMMMMMMMME
+            shutil.copy("../lib_build/aperture.exe", "local_repo")
+        case "Darwin":
+            shutil.copy("../lib_build/aperture", "local_repo")
 
 
 
 
 # Goes through all files in a repo, and edits them
-def edit_all_files(repo_link: str, entry_point_path: str = "", framework: str = "", target_os: str = "", testing=False):
+def edit_all_files(repo_link: str, entry_point_path: str = "", framework: str = "", os_used: str = ""):
     git_actions.clone_repo(repo_link, clone_dir="local_repo")
 
     frameworks = supported_json.get("frameworks", {})
@@ -65,7 +64,7 @@ def edit_all_files(repo_link: str, entry_point_path: str = "", framework: str = 
                 hf.eof_server_call(f"local_repo/{file}")
                 hf.handle_alerts(f"local_repo/{file}")
 
-    paste_aperture_executable(os)
+    paste_aperture_executable(os_used)
 
     try:
         token = git_actions.authenticate_with_github()
