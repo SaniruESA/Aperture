@@ -3,7 +3,7 @@ import os
 import json
 import sys
 import traceback
-
+import shutil
 
 with open("supported.json", "r", encoding="utf-8") as file:
     supported_json = json.load(file)
@@ -21,15 +21,16 @@ def paste_aperture_executable(os_used: str):
 
 # Goes through all files in a repo, and edits them
 def edit_all_files(repo_link: str, entry_point_path: str = "", framework: str = "", os_used: str = ""):
+
     git_actions.clone_repo(repo_link, clone_dir="local_repo")
 
-    frameworks = supported_json.get("frameworks", {})
-    if framework and framework in frameworks:
-        type_a = tuple(frameworks[framework].get("type_a", []))
-        type_b = tuple(frameworks[framework].get("type_b", []))
-    else:
-        type_a = tuple()
-        type_b = tuple()
+    # frameworks = supported_json.get("frameworks", {})
+    # if framework and framework in frameworks:
+    #     type_a = tuple(frameworks[framework].get("type_a", []))
+    #     type_b = tuple(frameworks[framework].get("type_b", []))
+    # else:
+    #     type_a = tuple()
+    #     type_b = tuple()
 
     # generating ui_elements.json
     full_ui_json = {}
@@ -37,11 +38,11 @@ def edit_all_files(repo_link: str, entry_point_path: str = "", framework: str = 
     for root, _, files in os.walk("local_repo"):
         for file in files:
 
-            if file.endswith(type_a):
-                response = hf.detect_ui_elements(f"local_repo/{file}")
+            # if file.endswith(type_a):
+            response = hf.detect_ui_elements(f"local_repo/{file}")
 
-                for key, value in response.items():
-                    full_ui_json[key] = value
+            for key, value in response.items():
+                full_ui_json[key] = value
 
     with open("ui_elements.json","w") as fp:
         json.dump(full_ui_json, fp, indent=4)
@@ -58,11 +59,11 @@ def edit_all_files(repo_link: str, entry_point_path: str = "", framework: str = 
     for root, _, files in os.walk("local_repo"):
         for file in files:
 
-            if file.endswith(type_b):
-                hf.generate_server_send_function(f"local_repo/{file}")
-                hf.handle_conditional_ui(f"local_repo/{file}", full_ui_json)
-                hf.eof_server_call(f"local_repo/{file}")
-                hf.handle_alerts(f"local_repo/{file}")
+            # if file.endswith(type_b):
+            hf.generate_server_send_function(f"local_repo/{file}")
+            hf.handle_conditional_ui(f"local_repo/{file}", full_ui_json)
+            hf.eof_server_call(f"local_repo/{file}")
+            hf.handle_alerts(f"local_repo/{file}")
 
     paste_aperture_executable(os_used)
 
