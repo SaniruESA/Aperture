@@ -22,6 +22,27 @@
         "filter": [
           "**/*"
         ]
+      },
+      {
+        "from": "..\\code_modification",
+        "to": "code_modification",
+        "filter": [
+          "**/*"
+        ]
+      },
+      {
+        "from": "..\\lib_build",
+        "to": "lib_build",
+        "filter": [
+          "**/*"
+        ]
+      },
+      {
+        "from": "..\\build\\python_deps",
+        "to": "py_deps",
+        "filter": [
+          "**/*"
+        ]
       }
     ]
   }

@@ -7,6 +7,14 @@ const fs = require('fs')
 let pythonProcess
 let mainWindow
 let lastParams = null
+// Buffers for messages coming from the python child while different pages are shown
+let bufferedLinks = []
+let bufferedAuthCodes = []
+let bufferedDoneLink = null
+let lastSentDoneLink = null
+// By default, do NOT execute any bundled PyInstaller executables found under resources.
+// This prevents unrelated packaged Python apps (like `aperture.exe`) from running.
+const ALLOW_BUNDLED_EXE = true
 
 // Use writable temporary folders for Electron profile and cache to avoid
 // "Unable to move the cache: Access is denied" errors on Windows.
@@ -39,12 +47,54 @@ function makeRepoUrl(repo) {
 }
 
 function startPythonProcess() {
-  // absolute path to script in repo
-  const pythonPath = path.resolve(__dirname, '..', '..', 'code_modification', 'main.py')
-  pythonProcess = spawn('python3', [pythonPath], {
-    cwd: path.resolve(__dirname, '..', '..'), // repo root so relative paths work
-    stdio: ['pipe', 'pipe', 'pipe']
-  })
+  // Determine what to run:
+  // - during development: run the local Python script
+  // - when packaged: prefer a bundled python executable (pyinstaller) if present under resources,
+  //   otherwise look for an unpacked `code_modification/main.py` in `resources` (use extraResources when packaging)
+  const devPythonPath = path.resolve(__dirname, '..', '..', 'code_modification', 'main.py')
+  const candidates = []
+
+  if (!app.isPackaged) {
+    // During development prefer a locally-built one-file exe if present (useful for testing PyInstaller build)
+    const devExe = path.join(__dirname, '..', 'build', 'python', 'win', 'Aperture.exe')
+    if (fs.existsSync(devExe)) {
+      candidates.push({ type: 'exe', cmd: devExe, args: [], cwd: path.resolve(__dirname, '..') })
+    }
+    candidates.push({ type: 'pyfile', cmd: process.env.PYTHON || 'python', args: [devPythonPath], cwd: path.resolve(__dirname, '..', '..') })
+} else {
+    // common places inside resources when packaged
+    const r = process.resourcesPath
+    // PRIORITIZE bundled PyInstaller exes first
+    if (ALLOW_BUNDLED_EXE) {
+      candidates.push({ type: 'exe', cmd: path.join(r, 'python', 'win', 'Aperture.exe'), args: [], cwd: r })
+      candidates.push({ type: 'exe', cmd: path.join(r, 'python', 'win', 'aperture', 'Aperture.exe'), args: [], cwd: r })
+    }
+    // fallback to unpacked script placed via extraResources at resources/code_modification/main.py
+    candidates.push({ type: 'pyfile', cmd: process.env.PYTHON || 'python', args: [path.join(r, 'code_modification', 'main.py')], cwd: r })
+  }
+  
+  // find the first candidate that exists (for exe or pyfile path)
+  let chosen = null
+  for (const c of candidates) {
+    try {
+      if (c.type === 'exe' || (c.type === 'pyfile' && c.args && c.args[0])) {
+        const p = c.type === 'exe' ? c.cmd : c.args[0]
+        if (fs.existsSync(p)) { chosen = c; break }
+      }
+    } catch (e) {}
+  }
+
+  if (!chosen) {
+    // fallback: try invoking system python on packaged app path (may fail if file is inside asar)
+    const fallback = path.join(process.resourcesPath, 'code_modification', 'main.py')
+    chosen = { type: 'pyfile', cmd: process.env.PYTHON || 'python', args: [fallback], cwd: process.resourcesPath }
+  }
+  // log what we're about to start so packaged/runtime diagnostics are visible
+  try {
+    console.log('[python runner] chosen candidate:', chosen)
+  } catch (e) {}
+
+  pythonProcess = spawn(chosen.cmd, chosen.args, { cwd: chosen.cwd, stdio: ['pipe', 'pipe', 'pipe'], env: { ...process.env, PYTHONUNBUFFERED: '1' } })
 
   pythonProcess.stdout.setEncoding('utf8')
   pythonProcess.stdout.on('data', chunk => {
@@ -99,7 +149,31 @@ function startPythonProcess() {
             // fallthrough to sending as external link
           }
 
-          if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send('app-links', [obj.url])
+          // decide whether to send now or buffer depending on which page is visible
+          try {
+            if (mainWindow && !mainWindow.isDestroyed()) {
+              const current = mainWindow.webContents.getURL() || ''
+              if (current.includes('done.html')) {
+                mainWindow.webContents.send('done-link', obj.url)
+                lastSentDoneLink = obj.url
+              } else if (current.includes('index.html')) {
+                mainWindow.webContents.send('app-links', [obj.url])
+              } else {
+                // buffer for later (either index or done)
+                // if this looks like a PR URL, prefer the done-link buffer
+                if (obj.url.includes('/pull/')) bufferedDoneLink = obj.url
+                else bufferedLinks.push(obj.url)
+              }
+            } else {
+              // no window yet, buffer
+              if (obj.url.includes('/pull/')) bufferedDoneLink = obj.url
+              else bufferedLinks.push(obj.url)
+            }
+          } catch (e) {
+            // fallback: send as app-links
+            if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send('app-links', [obj.url])
+            else bufferedLinks.push(obj.url)
+          }
         }
 
         if (obj.action === 'auth_code' && obj.code) {
@@ -254,6 +328,40 @@ const createWindow = () => {
   })
 
   mainWindow.loadFile('index.html')
+
+  // When any page finishes loading, flush buffered messages if we're on index.html
+  mainWindow.webContents.on('did-finish-load', () => {
+    try {
+      const url = mainWindow.webContents.getURL() || ''
+      // flush for index.html
+      if (url.endsWith('index.html') || url.includes('index.html')) {
+        if (bufferedLinks.length) {
+          mainWindow.webContents.send('app-links', bufferedLinks)
+          bufferedLinks = []
+        }
+        if (bufferedAuthCodes.length) {
+          const last = bufferedAuthCodes[bufferedAuthCodes.length-1]
+          mainWindow.webContents.send('auth-code', last)
+          bufferedAuthCodes = []
+        }
+      }
+      // flush for done.html
+      if (url.endsWith('done.html') || url.includes('done.html')) {
+        if (bufferedDoneLink) {
+          mainWindow.webContents.send('done-link', bufferedDoneLink)
+          lastSentDoneLink = bufferedDoneLink
+          bufferedDoneLink = null
+        }
+        // also send any links that aren't PRs
+        if (bufferedLinks.length) {
+          mainWindow.webContents.send('app-links', bufferedLinks)
+          bufferedLinks = []
+        }
+      }
+    } catch (e) {
+      // ignore
+    }
+  })
 }
 
 app.whenReady().then(() => {
@@ -265,6 +373,11 @@ app.whenReady().then(() => {
       createWindow()
     }
   })
+})
+
+// allow renderer to request last done link
+ipcMain.handle('get-last-done-link', async () => {
+  return lastSentDoneLink || bufferedDoneLink || null
 })
 
 app.on('window-all-closed', () => {
