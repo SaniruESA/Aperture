@@ -50,15 +50,18 @@ class TabNavOrder():
         self.hoveredElement = {"rect": None, "ariaText": None}
 
     def getUIElements(self):
+        """Get all registered UI elements"""
         return self.order
 
-    # can we have a callback passed like this between languages?
     def addUIElement(self, buttonRect: list, UIType: UITypeOptions, ariaText: str):
+        """Add UI element to registry"""
         self.order[UIType].append({"rect": buttonRect, "ariaText": ariaText})
 
         info(f"Added UI Element for {ariaText}", __name__)
         
     def clearAllUIElements(self):
+        """Clear all UI elements from registry"""
+
         self.order = {
             "button": [],
             "text": []
@@ -67,7 +70,9 @@ class TabNavOrder():
         info("Cleared all UI Elements",__name__)
 
     def handleTabPress(self,shift:bool=False):
+        """Narrate/select next UI Element in registry for tab presses"""
         
+        # Return if nothing to tab through
         if len(self.order["button"]) == 0:
             return
         
@@ -80,7 +85,7 @@ class TabNavOrder():
             
         self.tabbedElement = self.order["button"][self.tabbedElementIndex]
 
-        # Say the text
+        # Narrate the text
         server_ticker.SERVER.tts_queue.queue_play(f".\\temp\\output_{self.tabbedElement['ariaText']}.mp3",-1,self.tabbedElement["ariaText"],True,True)
         
         # Update UI Rectangle
@@ -91,6 +96,7 @@ class TabNavOrder():
         info(f"Switched tab focus to element named {self.tabbedElement["ariaText"]}", __name__)
         
     def handleEnterPress(self):
+        """Handles click on any selected/tabbed element"""
         
         # Get window pos
         get_window()
@@ -109,6 +115,7 @@ class TabNavOrder():
         pyautogui.position(mousePos.x,mousePos.y)
 
     def hoverTTS(self):
+        """Narrate UI element on hover"""
         
         # Get window pos
         get_window()
