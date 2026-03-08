@@ -12,31 +12,29 @@ let bufferedLinks = []
 let bufferedAuthCodes = []
 let bufferedDoneLink = null
 let lastSentDoneLink = null
-// By default, do NOT execute any bundled PyInstaller executables found under resources.
-// This prevents unrelated packaged Python apps (like `aperture.exe`) from running.
+
+// By default, execute any bundled PyInstaller executables found under resources
 const ALLOW_BUNDLED_EXE = true
 
-// Use writable temporary folders for Electron profile and cache to avoid
-// "Unable to move the cache: Access is denied" errors on Windows.
+// Use temp folders for Electron profile and cache to avoid Windows error
 const tmpUserData = path.join(os.tmpdir(), 'ApertureUserData')
 const tmpCache = path.join(os.tmpdir(), 'ApertureCache')
 try {
   fs.mkdirSync(tmpUserData, { recursive: true })
   fs.mkdirSync(tmpCache, { recursive: true })
 } catch (e) {
-  // ignore directory creation errors
+  // Ignore directory creation errors
 }
 
-// set paths before app.whenReady()
+// Set paths before app.whenReady()
 try {
   app.setPath('userData', tmpUserData)
   app.commandLine.appendSwitch('disk-cache-dir', tmpCache)
-  // optionally disable GPU if GPU cache still causes issues
-  // app.commandLine.appendSwitch('disable-gpu')
 } catch (e) {
-  // if app isn't initialized yet or this fails, ignore and continue
+  // If app isn't initialized yet or this fails, ignore and continue
 }
 
+// Helper to construct GH repo URL
 function makeRepoUrl(repo) {
   if (!repo) return null
   const v = repo.trim()
@@ -50,7 +48,7 @@ function startPythonProcess() {
   // Determine what to run:
   // - during development: run the local Python script
   // - when packaged: prefer a bundled python executable (pyinstaller) if present under resources,
-  //   otherwise look for an unpacked `code_modification/main.py` in `resources` (use extraResources when packaging)
+  //   otherwise look for an unpacked "code_modification/main.py" in "resources"
   const devPythonPath = path.resolve(__dirname, '..', '..', 'code_modification', 'main.py')
   const candidates = []
 
@@ -62,18 +60,19 @@ function startPythonProcess() {
     }
     candidates.push({ type: 'pyfile', cmd: process.env.PYTHON || 'python', args: [devPythonPath], cwd: path.resolve(__dirname, '..', '..') })
 } else {
-    // common places inside resources when packaged
+    // Places inside resources when packaged
     const r = process.resourcesPath
-    // PRIORITIZE bundled PyInstaller exes first
+
+    // Prioritize bundled PyInstaller exes first
     if (ALLOW_BUNDLED_EXE) {
       candidates.push({ type: 'exe', cmd: path.join(r, 'python', 'win', 'Aperture.exe'), args: [], cwd: r })
       candidates.push({ type: 'exe', cmd: path.join(r, 'python', 'win', 'aperture', 'Aperture.exe'), args: [], cwd: r })
     }
-    // fallback to unpacked script placed via extraResources at resources/code_modification/main.py
+    // Fallback to unpacked script
     candidates.push({ type: 'pyfile', cmd: process.env.PYTHON || 'python', args: [path.join(r, 'code_modification', 'main.py')], cwd: r })
   }
   
-  // find the first candidate that exists (for exe or pyfile path)
+  // Find the first candidate that exists (for exe or pyfile path)
   let chosen = null
   for (const c of candidates) {
     try {
@@ -85,11 +84,12 @@ function startPythonProcess() {
   }
 
   if (!chosen) {
-    // fallback: try invoking system python on packaged app path (may fail if file is inside asar)
+    // Fallback: try invoking system python on packaged app path
     const fallback = path.join(process.resourcesPath, 'code_modification', 'main.py')
     chosen = { type: 'pyfile', cmd: process.env.PYTHON || 'python', args: [fallback], cwd: process.resourcesPath }
   }
-  // log what we're about to start so packaged/runtime diagnostics are visible
+
+  // Log what we're about to start so packaged/runtime diagnostics are visible
   try {
     console.log('[python runner] chosen candidate:', chosen)
   } catch (e) {}
@@ -98,12 +98,14 @@ function startPythonProcess() {
 
   pythonProcess.stdout.setEncoding('utf8')
   pythonProcess.stdout.on('data', chunk => {
+
     // Just testing from python output stream for now
     chunk.toString().split(/\r?\n/).filter(Boolean).forEach(line => {
       console.log(`[python stdout] ${line}`)
       try {
         const obj = JSON.parse(line)
-        // handle structured messages from python
+
+        // Handle structured messages from python
         if (obj.action === 'run_edit_all' && obj.status === 'ok') {
           if (mainWindow && !mainWindow.isDestroyed()) {
             mainWindow.loadFile(path.join(__dirname, '..', 'pages', 'done.html'))
@@ -111,7 +113,7 @@ function startPythonProcess() {
         }
 
         if (obj.action === 'open_url' && obj.url) {
-          // if the URL points to a local html file, prefer loading it via loadFile
+          // If the URL points to a local html file, prefer loading it via loadFile
           try {
             const u = obj.url
             if (u.startsWith('file://') || u.endsWith('.html')) {
@@ -129,7 +131,7 @@ function startPythonProcess() {
                 localPath = u
               }
 
-              // find candidate locations inside the app (pages/ or root)
+              // Find candidate locations inside the app (pages/ or root)
               const candidates = [
                 path.join(__dirname, '..', 'pages', path.basename(localPath)),
                 path.join(__dirname, '..', path.basename(localPath))
@@ -149,7 +151,7 @@ function startPythonProcess() {
             // fallthrough to sending as external link
           }
 
-          // decide whether to send now or buffer depending on which page is visible
+          // Decide whether to send now or buffer depending on which page is visible
           try {
             if (mainWindow && !mainWindow.isDestroyed()) {
               const current = mainWindow.webContents.getURL() || ''
@@ -164,11 +166,13 @@ function startPythonProcess() {
                 if (obj.url.includes('/pull/')) bufferedDoneLink = obj.url
                 else bufferedLinks.push(obj.url)
               }
+
             } else {
-              // no window yet, buffer
+              // No window yet, buffer
               if (obj.url.includes('/pull/')) bufferedDoneLink = obj.url
               else bufferedLinks.push(obj.url)
             }
+            
           } catch (e) {
             // fallback: send as app-links
             if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send('app-links', [obj.url])

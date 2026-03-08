@@ -93,8 +93,7 @@ def stage_and_commit(repo_dir, commit_message="Added all accessibility features"
     repo = Repo(repo_dir)
     with repo.config_writer() as cw:
 
-        # Methods to ensure pushing large repos works (increase buffers, reduce compression)
-        # Larger postBuffer helps reduce mid-transfer failures for big pushes
+        # Methods to ensure pushing large repos works
         try:
             cw.set_value("http", "postBuffer", "524288000")
             cw.set_value("http", "version", "HTTP/1.1")
@@ -109,56 +108,62 @@ def stage_and_commit(repo_dir, commit_message="Added all accessibility features"
     new_branch = "accessibility-updates"
     origin = repo.remote(name=remote_name)
 
-    # COMENT
+    # Delete remote branch if it already exists
     remote_branches = [ref.name.split('/')[-1] for ref in origin.refs]  # list of remote branch names
     if new_branch in remote_branches:
         print(f"Deleting remote branch '{new_branch}'")
-        origin.push(f":{new_branch}")  # delete remote branch
+        origin.push(f":{new_branch}")  
 
-    # COMENT
+    # Delete local branch if it already exists
     if new_branch in repo.heads:
         print(f"Deleting local branch '{new_branch}'")
         repo.git.branch('-D', new_branch)
 
+    # (Re)Create the branch
     repo.git.checkout("-b", new_branch)
 
+    # Stage and commit
     if repo.is_dirty(untracked_files=True):
         repo.git.add(".")
         repo.git.commit("-m", commit_message)
     else:
-        print("No changes to commit") # TODO: replace with info()
+        print("No changes to commit")
         return False
 
-    # Run gc to reduce pack sizes and prepare repository for transfer
+    # Run gc to reduce pack sizes
     try:
         repo.git.gc('--aggressive', '--prune=now')
     except Exception:
         pass
 
-    # Push branch to GitHub with retries/backoff to improve resilience against network/SSL glitches
+    # Push branch to GitHub with retries/backoff
     push_success = False
     last_exc = None
     max_attempts = 4
+
     for attempt in range(1, max_attempts + 1):
+        # Try to push
         try:
             push_result = origin.push(refspec=f"{new_branch}:{new_branch}", force=True)
             for info in push_result:
                 print("Push summary:", info.summary, "\nFlags:", info.flags)
             push_success = True
             break
+
+        # Exponential backoff
         except gitlib.GitCommandError as e:
             last_exc = e
             print(f"Push attempt {attempt} failed: {e}")
-            # exponential backoff
             time.sleep(attempt * 2)
 
+    # Re-raise or print detailed error for upstream handling
     if not push_success:
         print("Push failed after retries.")
         if last_exc:
-            # re-raise or print detailed error for upstream handling
+            
             raise last_exc
-
-
+    
+    # Return true on success
     return True
 
 
@@ -181,11 +186,6 @@ def create_pull_request(repo_name, branch_name, token, base_branch="main", repo_
 
     # Allow time for GitHub to process branch addition
     time.sleep(10)
-
-    # TEST
-    for b in repo.get_branches():
-        print(b.name)
-
 
     # Retry PRs in case GitHub didn't process branch yet
     for i in range(3):
