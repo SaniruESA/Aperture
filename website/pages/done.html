@@ -139,6 +139,16 @@
             a.textContent = url
           })
         }
+                // also request the last link in case the event was missed
+                if (window.InternalAPI && window.InternalAPI.getLastDoneLink) {
+                    window.InternalAPI.getLastDoneLink().then(url => {
+                        if (!url) return
+                        const a = document.getElementById('doneLink')
+                        const t = document.getElementById('doneText')
+                        a.href = url
+                        a.textContent = url
+                    }).catch(() => {})
+                }
         </script>
     </body>
 </html>

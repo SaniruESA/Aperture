@@ -1,17 +1,20 @@
+// Upon DOM loading, takes input from HTML page
 document.addEventListener('DOMContentLoaded', () => {
   const input = document.getElementById('githublink')
   const entryInput = document.getElementById('entrypoint')
   const frameworkInput = document.getElementById('framework')
   const runBtn = document.getElementById('runBtn')
 
-  // scuffed validation checker
+  // Validation checker for input link
+  // args: value - String to test regex against
   function isValid(value) {
     if (!value) return false
     const v = value.trim()
+    // regex used to verify if the input is in owner/repo format
     const ownerRepo = /^[^\/\s]+\/[^\/\s]+$/
-    return ownerRepo.test(v) || v.toLowerCase().includes('github.com/')
+    return ownerRepo.test(v) || v.toLowerCase().includes('github.com/') // also checks if it is a github link seperately
   }
-
+  // 
   input.addEventListener('input', () => {
     input.classList.remove('valid', 'invalid')
     if (input.value === '') return
@@ -32,8 +35,8 @@ document.addEventListener('DOMContentLoaded', () => {
   // initial state
   updateRunButtonState()
 
-  // don't auto-submit on single-field change — require all fields and Run button
-
+  // simple check for all input fields being filled out, true if this is the case, 
+  // false otherwise
   function allFieldsFilled() {
     return (
       input.value.trim() !== '' &&
@@ -42,16 +45,17 @@ document.addEventListener('DOMContentLoaded', () => {
     )
   }
 
-  // submit when Enter is pressed and all fields are filled
+  // For each input field, add an event listener for the enter keypress
   [input, entryInput, frameworkInput].forEach(el => {
     el.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') {
+        // Asserts that all required fields are filled before continuing 
         if (!allFieldsFilled()) return
         runBtn.click()
       }
     })
   })
-  
+  // Helper function to organize all the text field elements
   function gatherArgs() {
     return {
       repo_link: document.getElementById('githublink').value.trim(),
@@ -109,21 +113,24 @@ document.addEventListener('DOMContentLoaded', () => {
       setInputsDisabled(false)
     })
   }
-
+  // Simple error handler with message
   function showError(msg) {
     const box = document.getElementById('errorBox')
     if (!box) return
     box.textContent = `Error: ${msg}. Please try again.`
     box.style.display = 'block'
   }
-
+  // Clears the error message
   function clearError() {
     const box = document.getElementById('errorBox')
     if (!box) return
     box.textContent = ''
     box.style.display = 'none'
   }
-
+  // Function to set all input fields to either enabled or disabled
+  // args: disabled
+  // true -> input disabled
+  // false -> input enabled
   function setInputsDisabled(disabled) {
     input.disabled = disabled
     entryInput.disabled = disabled
