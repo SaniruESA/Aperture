@@ -1,3 +1,11 @@
+"""
+Handles live UI updates on the client-side software.
+Ensures proper UI element registry within Aperture library.
+
+Runs asynchronously with Aperture library to provide live
+updates on shown/hidden UI elements.
+"""
+
 import json
 import socket
 

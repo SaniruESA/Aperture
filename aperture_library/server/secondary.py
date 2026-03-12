@@ -1,3 +1,8 @@
+"""
+Secondary server for purposes not directly related to client/server
+communication within Aperture Library.
+"""
+
 import socket
 from . import DEFAULT_COMPUTER_IP,possible_server_types
 from ..logger.basic_logs import *

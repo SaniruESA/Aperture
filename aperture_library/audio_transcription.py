@@ -1,3 +1,11 @@
+"""
+Implements the subprocess thread to execute the compiled audio transcription
+code written in C#.
+
+Enables asynchronous audio transcription alongside other Aperture library
+features.
+"""
+
 import subprocess
 import platform
 import os

@@ -1,8 +1,10 @@
 """
-Handles Hugging Face interactions, including prompting code edits, detecting UI elements, and generating server communication functions. 
-This module uses the Hugging Face API to send prompts and receive responses for code modifications. It also includes functions for parsing AI responses and formatting them into structured data.
-"""
+Queries HuggingFace Model (Qwen3-Coder-30B)
+with defined prompts for repository code editing.
 
+The majority of the code editing process, when user inputs
+a repository into Aperture.
+"""
 
 import os
 import json

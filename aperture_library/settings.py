@@ -1,5 +1,5 @@
 """
-Settings of python acc lib
+Settings of the Aperture Library
 """
 from .settings_types import *
 
