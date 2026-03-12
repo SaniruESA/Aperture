@@ -1,4 +1,7 @@
 # DEPENDENCIES REQUIRED: stuff for PyGithub, GitPython
+"""
+This module contains functions for interacting with GitHub, including authentication, cloning repos, committing changes, and creating pull requests. It uses the PyGithub library for GitHub API interactions and GitPython for local git operations.
+"""
 from github import Github, Auth, GithubException
 from git import Repo
 import git as gitlib
@@ -14,9 +17,11 @@ import shutil
 # Aperture project ID
 CLIENT_ID = "Ov23liV0UHREdct0ILC3"
 
-# Automated Github authentication
-def authenticate_with_github():
 
+def authenticate_with_github():
+    """
+    Authenticates the user with GitHub; It opens the GitHub authentication page in the user's browser and polls for an access token until the user completes authentication.
+    """
     # Post json request
     res = requests.post(
         "https://github.com/login/device/code",
@@ -68,14 +73,28 @@ def authenticate_with_github():
 
         time.sleep(interval)
 
-# Error handler to delete read-only files
+
 def remove_readonly(func, path, ex_info):
+    """ 
+    Removes read-only attribute from files to allow deletion
+
+    Arguments:
+        func: The function to call after changing permissions (e.g., os.remove)
+        path: The path of the file to change permissions for
+        ex_info: Exception info (not used)
+    """
     os.chmod(path, stat.S_IWRITE)
     func(path)
 
-# Clone a Github repo, given the HTTPS URL and the directory to clone it into
-def clone_repo(repo_url, clone_dir="local_repo"):
 
+def clone_repo(repo_url, clone_dir="local_repo"):
+    """
+    Clones a GitHub repository to a local directory. If the directory already exists, it deletes it first.
+
+    Arguments:
+        repo_url: The URL of the GitHub repository to clone
+        clone_dir: The local directory to clone the repository into (default: "local_repo")
+    """
     # Delete a repo if it already exists
     if os.path.exists(clone_dir):
         print("Local repo clone exists, deleting and replacing")
@@ -86,9 +105,16 @@ def clone_repo(repo_url, clone_dir="local_repo"):
     print(f"Cloned {repo_url}")
     return clone_dir
 
-# Stages all modified files and creates a commit.
-def stage_and_commit(repo_dir, commit_message="Added all accessibility features", remote_name="origin") -> bool:
 
+def stage_and_commit(repo_dir, commit_message="Added all accessibility features", remote_name="origin") -> bool:
+    """
+    Stages all changes in the local repository, commits them with a message, and pushes the changes to a new branch on GitHub. It includes error handling and retries for pushing to GitHub.
+
+    Arguments:
+        repo_dir: The local directory of the git repository
+        commit_message: The commit message to use (default: "Added all accessibility features")
+        remote_name: The name of the remote to push to (default: "origin")
+    """
     # Stage and commit changes
     repo = Repo(repo_dir)
     with repo.config_writer() as cw:
@@ -167,9 +193,18 @@ def stage_and_commit(repo_dir, commit_message="Added all accessibility features"
     return True
 
 
-# Create pull request
-def create_pull_request(repo_name, branch_name, token, base_branch="main", repo_dir="local_repo"):
 
+def create_pull_request(repo_name, branch_name, token, base_branch="main", repo_dir="local_repo"):
+    """
+    Creates a pull request on GitHub from the new branch created by stage_and_commit to the base branch (default: "main"). It includes retries for handling GitHub server errors.
+
+    Arguments:
+        repo_name: The name of the GitHub repository (e.g., "username/repo")
+        branch_name: The name of the branch to create the pull request from (e.g., "accessibility-updates")
+        token: The GitHub access token for authentication
+        base_branch: The name of the base branch to merge into (default: "main")
+        repo_dir: The local directory of the git repository (default: "local_repo")
+    """
     # Get info about user and repo
     auth = Auth.Token(token)
     g = Github(auth=auth)

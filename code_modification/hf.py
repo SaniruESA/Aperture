@@ -1,3 +1,9 @@
+"""
+Handles Hugging Face interactions, including prompting code edits, detecting UI elements, and generating server communication functions. 
+This module uses the Hugging Face API to send prompts and receive responses for code modifications. It also includes functions for parsing AI responses and formatting them into structured data.
+"""
+
+
 import os
 import json
 import requests
@@ -8,7 +14,7 @@ API_URL = "https://router.huggingface.co/v1/chat/completions"
 HEADER = {
     "Authorization": f"Bearer {hugging_face_auth.get_token_pipeline()}",
 }
-
+    
 def query(payload:dict):
     """
     Requests output from huggingface servers
@@ -58,6 +64,12 @@ def prompt_code(code:str, prompt:str, return_code:bool=True):
     return content
 
 def detect_ui_elements(path:str):
+    """
+    Detects UI elements in the code and their properties, including type, position, size, and description.
+
+    Arguments:
+        path: The file path of the code to analyze for UI elements
+    """
 
     # Make prompt
     prompt = """Extract x,y,width,height, description, type, and find the <Type of UI>, <X>, <Y>, <Width>, <Height>, <Description/Text>, <Line Number of Code> for each UI element in the code.
@@ -99,6 +111,13 @@ def detect_ui_elements(path:str):
     return corrected_keys_json
 
 def run_aperture_code(path:str):
+    """
+    Modifies the code to run the appropriate executable file for the user's OS. It uses the prompt_code function to send the code to the Hugging Face API 
+    with a specific prompt for adding the aperture_runner function, which checks the user's OS and runs the corresponding executable file.
+
+    Arguments:
+        path: The file path of the code to modify for running the aperture executable
+    """
 
     # Get language
     language = path.split(".")[-1]
@@ -120,7 +139,13 @@ def run_aperture_code(path:str):
         fp.write(remove_markdown(output))
 
 def generate_server_send_function(path:str):
+    """
+    Generates a function called server_send that sends information to the server about UI changes, alerts, and other important information. It uses the prompt_code function to send the code to the Hugging Face API
+    with a specific prompt for adding the server_send function, which formats the information as a JSON string and sends it to the server using sockets.
 
+    Arguments:
+        path: The file path of the code to modify for adding the server_send function
+    """
     # Get language
     language = path.split(".")[-1]
 
@@ -144,6 +169,15 @@ def generate_server_send_function(path:str):
         fp.write(remove_markdown(output))
 
 def handle_conditional_ui(path:str, ui_elements_json:dict):
+    """
+    Detects conditional UI element changes in the code and adds server calls to communicate these changes to the server. 
+    It uses the prompt_code function to send the code to the Hugging Face API with a specific prompt for identifying conditional logic that controls UI elements and inserting server_send function calls with the appropriate content.
+
+    Arguments:
+        path: The file path of the code to modify for handling conditional UI elements
+        ui_elements_json: A dictionary containing the UI elements and their properties
+
+    """
 
     # Make prompt
     prompt = f"""Everywhere there is a conditional showing/hiding or other logic controlling a UI element, call the server_send() function.
@@ -166,6 +200,12 @@ def handle_conditional_ui(path:str, ui_elements_json:dict):
         fp.write(remove_markdown(output))
 
 def eof_server_call(path:str):
+    """
+    Handles end of file server calls by prompting the Hugging Face API to analyze the code and insert a server_send function call.
+
+    Arguments:
+        path: The file path of the code to modify for handling end of file server calls
+    """
 
     file_name = os.path.basename(path)
 
@@ -185,7 +225,12 @@ def eof_server_call(path:str):
         fp.write(remove_markdown(output))
 
 def handle_alerts(path:str):
+    """
+    Handles alerts and popups in the code by prompting the Hugging Face API to analyze the code and insert server_send function calls for any potential audio-based alerts or popups.
 
+    Arguments:
+        path: The file path of the code to modify for handling alerts and popups
+    """
     # Make prompt
     prompt = f"""Every time the code contains a potential audio-based alert or popup, insert a function call for server_send() 
     The first argument should be "add_popup" and the second argument should be the textual content of the alert."""

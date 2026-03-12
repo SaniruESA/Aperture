@@ -1,3 +1,7 @@
+"""
+Main module for the code modification tool. Handles cmds from Electron main process, coordinates the overall flow of cloning repos, editing files, and creating pull requests.
+Contains utility functions for file operations and command handling.
+"""
 import git_actions
 import os
 import json
@@ -6,132 +10,10 @@ import traceback
 import shutil
 import hf
 import platform
+import supported
 
 
-supported_json = {
-    "frameworks": {
-        "Flutter": {
-            "type_a": [".dart"],
-            "type_b": [".dart"]
-        },
-        "Qt (QML + C++)": {
-            "type_a": [".qml", ".ui"],
-            "type_b": [".cpp", ".h", ".qml"]
-        },
-        "Tkinter": {
-            "type_a": [".py"],
-            "type_b": [".py"]
-        },
-        "Electron": {
-            "type_a": [".html", ".jsx", ".tsx"],
-            "type_b": [".js", ".ts", ".jsx", ".tsx"]
-        },
-        "WPF": {
-            "type_a": [".xaml"],
-            "type_b": [".cs", ".xaml.cs"]
-        },
-        "WinForms": {
-            "type_a": [".Designer.cs", ".resx"],
-            "type_b": [".cs"]
-        },
-        "JavaFX": {
-            "type_a": [".fxml"],
-            "type_b": [".java"]
-        },
-        "Swing": {
-            "type_a": [".java", ".form"],
-            "type_b": [".java"]
-        },
-        "GTK (Python)": {
-            "type_a": [".glade", ".ui"],
-            "type_b": [".py"]
-        },
-        "GTK (C)": {
-            "type_a": [".glade", ".ui"],
-            "type_b": [".c", ".h"]
-        },
-        "wxWidgets (C++)": {
-            "type_a": [".xrc"],
-            "type_b": [".cpp", ".h"]
-        },
-        "wxPython": {
-            "type_a": [".xrc"],
-            "type_b": [".py"]
-        },
-        "Avalonia": {
-            "type_a": [".axaml", ".xaml"],
-            "type_b": [".cs", ".axaml.cs"]
-        },
-        "UWP": {
-            "type_a": [".xaml"],
-            "type_b": [".cs", ".xaml.cs"]
-        },
-        "Tauri": {
-            "type_a": [".html", ".svelte", ".vue", ".jsx", ".tsx"],
-            "type_b": [".js", ".ts", ".rs", ".jsx", ".tsx"]
-        },
-        "React Native (Windows/macOS)": {
-            "type_a": [".jsx", ".tsx"],
-            "type_b": [".js", ".ts", ".jsx", ".tsx"]
-        },
-        "MAUI": {
-            "type_a": [".xaml"],
-            "type_b": [".cs", ".xaml.cs"]
-        },
-        "Kivy": {
-            "type_a": [".kv"],
-            "type_b": [".py"]
-        },
-        "PyQt": {
-            "type_a": [".ui", ".qml"],
-            "type_b": [".py"]
-        },
-        "PySide": {
-            "type_a": [".ui", ".qml"],
-            "type_b": [".py"]
-        },
-        "Wails": {
-            "type_a": [".html", ".svelte", ".vue", ".jsx", ".tsx"],
-            "type_b": [".go", ".js", ".ts", ".jsx", ".tsx"]
-        },
-        "NW.js": {
-            "type_a": [".html", ".jsx", ".tsx"],
-            "type_b": [".js", ".ts", ".jsx", ".tsx"]
-        },
-        "Neutralinojs": {
-            "type_a": [".html"],
-            "type_b": [".js", ".ts"]
-        },
-        "Lazarus/Free Pascal": {
-            "type_a": [".lfm", ".dfm"],
-            "type_b": [".pas", ".pp"]
-        },
-        "Dear ImGui": {
-            "type_a": [".cpp", ".h"],
-            "type_b": [".cpp", ".h"]
-        },
-        "FLTK": {
-            "type_a": [".fl"],
-            "type_b": [".cpp", ".cxx", ".h"]
-        },
-        "Tcl/Tk": {
-            "type_a": [".tcl"],
-            "type_b": [".tcl"]
-        },
-        "Xojo": {
-            "type_a": [".xojo_window"],
-            "type_b": [".xojo_code"]
-        },
-        "Eto.Forms": {
-            "type_a": [".eto", ".jeto", ".xeto"],
-            "type_b": [".cs"]
-        },
-        "Slint": {
-            "type_a": [".slint"],
-            "type_b": [".rs", ".cpp", ".js"]
-        }
-    }
-}
+supported_json = supported.supported 
 
 
 
@@ -159,7 +41,16 @@ def paste_aperture_executable(os_used: str):
 
 # Goes through all files in a repo, and edits them
 def edit_all_files(repo_link: str, entry_point_path: str = "", framework: str = "", os_used: str = "", testing: bool = False):
-
+    """
+    Clones the repository, detects UI elements, generates necessary server functions, runs aperture helper code if entry point provided, and creates a pull request with the changes.
+    
+    Arguments:
+    repo_link: The URL of the GitHub repository to clone and edit
+    entry_point_path: The path to the entry point file in the repository
+    framework: The UI framework used in the repository (used for determining which files to edit)
+    os_used: The operating system to determine which Aperture executable to use 
+    testing: (internal) Flag for skipping pr creation
+    """
     
     git_actions.clone_repo(repo_link, clone_dir="local_repo")
 
@@ -216,6 +107,12 @@ def edit_all_files(repo_link: str, entry_point_path: str = "", framework: str = 
 
 # This will have multiple conditions later, just one communication for now
 def handle_command(cmd: dict):
+    """
+    Handles a command sent from the Electron main process.
+
+    Arguments:
+    cmd: A dictionary containing the command details. Currently supports "run_edit_all" action.
+    """
     action = cmd.get("action")
     if action == "run_edit_all":
         testing = bool(cmd.get("testing", False))

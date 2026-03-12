@@ -1,3 +1,7 @@
+"""
+Handles auth for Huggingface using OAuth 2.0 with PKCE. 
+"""
+
 import hashlib, base64, secrets, webbrowser, requests, socket, json
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from urllib.parse import urlparse, parse_qs
@@ -10,6 +14,9 @@ ALLOWED_PORTS = [8000, 8001, 8002]
 
 class CallbackHandler(BaseHTTPRequestHandler):
     def do_GET(self):
+        """
+        Handles the GET request sent by Huggingface after user authentication. It extracts the authorization code from the URL parameters and sends a success message back to the browser.
+        """
 
         # Get URL parameter for the code
         self.server.auth_code = parse_qs(urlparse(self.path).query).get("code", [None])[0]
@@ -20,14 +27,12 @@ class CallbackHandler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(b"<html><body><h1>Huggingface Login Successful</h1><p>You may return to Aperture</p></body></html>")
 
-    # For silent logs
-    def log_message(self, format, *args):
-        return
+
 
 
 def find_available_port():
     """
-    Goes through allowed ports to find an available one
+    Iterates allowed ports to find an available one
     """
 
     # Loop through ports, trying to connect
@@ -43,7 +48,10 @@ def find_available_port():
     raise Exception(f"No ports from {ALLOWED_PORTS[0]}-{ALLOWED_PORTS[-1]} are free")
 
 def get_token_pipeline():
-
+    """
+    Get the token pipeline for Huggingface authentication. It opens the Huggingface authentication page in the user's browser and starts a 
+    local server to catch the callback with the authorization code, then exchanges the code for an access token.
+    """
     # Get port and redirect URI
     port = find_available_port()
     redirect_uri = f"http://localhost:{port}/callback"

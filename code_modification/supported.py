@@ -1,4 +1,4 @@
-{
+supported = {
     "frameworks": {
         "Flutter": {
             "type_a": [".dart"],
