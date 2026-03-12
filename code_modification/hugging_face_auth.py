@@ -1,3 +1,7 @@
+"""
+Helper methods for HuggingFace authentication.
+"""
+
 import hashlib, base64, secrets, webbrowser, requests, socket, json
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from urllib.parse import urlparse, parse_qs
@@ -18,7 +22,13 @@ class CallbackHandler(BaseHTTPRequestHandler):
         self.send_response(200)
         self.send_header("Content-type", "text/html")
         self.end_headers()
-        self.wfile.write(b"<html><body><h1>Huggingface Login Successful</h1><p>You may return to Aperture</p></body></html>")
+        self.wfile.write(b"""
+                        <html>
+                            <body>
+                                <h1>Huggingface Login Successful</h1>
+                                <p>You may return to Aperture</p>
+                            </body>
+                        </html>""")
 
     # For silent logs
     def log_message(self, format, *args):

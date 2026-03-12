@@ -1,5 +1,7 @@
 """
-Stores voice command intentions (since python is a lot better at loading python files than normal files)
+Stores voice command intentions 
+(Written in Python in order to avoid issues with
+local imports)
 """
 intention_json = [
     {

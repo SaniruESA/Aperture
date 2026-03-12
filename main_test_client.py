@@ -1,3 +1,7 @@
+"""
+Client of Aperture Library for testing purposes.
+"""
+
 import aperture_library.server as server
 from aperture_library.server import easy_client
 import aperture_library.logger as logger

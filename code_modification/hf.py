@@ -1,3 +1,11 @@
+"""
+Queries HuggingFace Model (Qwen3-Coder-30B)
+with defined prompts for repository code editing.
+
+The majority of the code editing process, when user inputs
+a repository into Aperture.
+"""
+
 import os
 import json
 import requests

@@ -1,3 +1,10 @@
+"""
+Implementation of TTS using a custom Queue and priority
+system + listening for TTS calls from client.
+
+Runs in Aperture library to provide live TTS.
+"""
+
 # Import libraries
 import threading
 import asyncio

@@ -1,3 +1,12 @@
+"""
+Handles user's voice commands and interprets them for
+further action on the client-side software (for example,
+moving through pages or clicking buttons)
+
+Runs asynchronously with Aperture library to provide live
+voice command functionality.
+"""
+
 from RealtimeSTT import AudioToTextRecorder
 import json
 from .keyboard_nav import TabNavOrder
@@ -65,8 +74,6 @@ def interpret_intentions(command: str):
             if extract_placeholder(command, trigger, placeholder="XXX"):
                 intention_to_function[intention["intention_type"]](res)
                 return
-
-
 
 def extract_placeholder(text, template, placeholder="XXX"):
     """Cross-checks a string from a template. If they match, return the value

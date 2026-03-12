@@ -1,6 +1,8 @@
 """
-Ticker for server.Server
+Handles continuous server/client communication + connection
+within Aperture Library
 """
+
 from ..server import Server
 import json
 from ..logger.basic_logs import *

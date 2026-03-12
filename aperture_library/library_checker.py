@@ -1,6 +1,10 @@
 """
-Ensures libraries exist before importing them
+Ensures libraries exist before importing them.
+
+Used at beginning of entry point to ensure dependencies
+are present before building.
 """
+
 import os
 import subprocess
 from .logger.basic_logs import *

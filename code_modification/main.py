@@ -1,3 +1,10 @@
+"""
+Main file handling code editing for repo.
+Takes repo and edits each file.
+
+Runs when GH repo is inputted into Aperture.
+"""
+
 import git_actions
 import os
 import json

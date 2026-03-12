@@ -1,4 +1,10 @@
-# DEPENDENCIES REQUIRED: stuff for PyGithub, GitPython
+"""
+Helpers for Git Authentication, Branching, Pushing, etc.
+
+Utilized when code modification is done editing repository.
+"""
+
+# DEps stuff for PyGithub, GitPython
 from github import Github, Auth, GithubException
 from git import Repo
 import git as gitlib

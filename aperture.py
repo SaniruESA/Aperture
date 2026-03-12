@@ -1,5 +1,5 @@
 """
-Quickly runs the server
+Entry point file for Aperture Library.
 """
 from aperture_library import library_checker
 library_checker.verify_lib()

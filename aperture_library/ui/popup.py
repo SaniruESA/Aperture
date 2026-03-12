@@ -1,6 +1,7 @@
 """
-Popups in the pyglet window
+Popups made in the pyglet window.
 """
+
 import pyglet
 from ..server import server_ticker
 from .. import settings

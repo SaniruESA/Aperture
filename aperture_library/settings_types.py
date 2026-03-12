@@ -1,5 +1,5 @@
 """
-Types for settings to use (to make setting easier)
+Types for settings to use (to make customization easier)
 """
 from typing import Literal
 

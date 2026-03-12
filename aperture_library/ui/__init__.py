@@ -1,3 +1,11 @@
+"""
+Helpers for UI in the Aperture Library, made
+with Pyglet.
+
+Used for UI elements implemented by the Aperture
+Library, like visual alerts/popups.
+"""
+
 import pyglet
 from typing import Literal
 from . import popup

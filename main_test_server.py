@@ -1,3 +1,7 @@
+"""
+Server of Aperture Library for testing purposes.
+"""
+
 from aperture_library import verify_lib
 
 # For testing purposes

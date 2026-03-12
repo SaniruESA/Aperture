@@ -1,3 +1,11 @@
+"""
+Implements a TabNavOrder class to register and navigate
+through UI elements of a client-side software.
+
+Adds keyboard navigation and hover-based TTS to the features
+of the Aperture library.
+"""
+
 # Import libraries
 from .logger.basic_logs import *
 import pyautogui
