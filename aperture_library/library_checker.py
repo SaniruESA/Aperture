@@ -7,7 +7,7 @@ are present before building.
 
 import os
 import subprocess
-from .logger.basic_logs import *
+from .logger.basic_logs import info,error,warn
 
 def install_pip():
     """
@@ -169,6 +169,7 @@ def verify_lib():
     check_library("pygame","pygame","2.6.1",skip_import=True)
     check_library("pyautogui","pyautogui","0.9.54")
     check_library("keyboard","keyboard","0.13.5")
+    check_library("vosk","vosk","0.3.45")
     
     # Download libraries
     install_all()

@@ -5,12 +5,11 @@ within Aperture Library
 
 from ..server import Server
 import json
-from ..logger.basic_logs import *
+from ..logger.basic_logs import warn,debug,info,error,critical
 from . import server_help
 from .. import tts
 import threading
 import asyncio
-import pyglet
 from .. import ui
 from .. import settings
 from ..ui import popup
@@ -192,7 +191,7 @@ def _voice_command_server_threaded(server:Server):
     while server.is_alive:
         
         # Get what user said
-        said_text = server.recorder.text()
+        said_text = server.get_said()
         
         # Log what user said
         info("User Said:"+said_text,__name__)
@@ -207,7 +206,7 @@ def _voice_command_server_threaded(server:Server):
             server.tts_queue.queue_play(f".\\temp\\voice_assistant_listening.mp3",-1,settings.VOICE_ACTIVATION_CONFIRMATION,True,True)
             
             # Listen to user text and pipe to AI
-            said_text = server.recorder.text()
+            said_text = server.get_said()
             voice_commands.interpret_intentions(said_text.lower())
             
             # Log what user said
@@ -215,10 +214,6 @@ def _voice_command_server_threaded(server:Server):
         
     # Notify that thread was ended
     info("Ended server voice commands",__name__)
-    
-    # Stop STT
-    server.recorder.stop()
-    server.recorder.abort()
     
 def start_threaded_server(server:Server):
     """

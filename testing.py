@@ -1,7 +1,8 @@
 from vosk import Model, KaldiRecognizer
-import pyaudio,json
+import pyaudio
+import json
 
-model = Model("vosk-model-small-en-us-0.15")
+model = Model("vosk_listener")
 recognizer = KaldiRecognizer(model,160000)
 
 p = pyaudio.PyAudio()

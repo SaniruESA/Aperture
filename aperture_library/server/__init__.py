@@ -4,15 +4,19 @@ A basic server to connect python and other languages together
 
 import socket
 from typing import Literal
-from ..logger.basic_logs import *
+from ..logger.basic_logs import warn,info,error,critical,debug
+import os
 import random
 import json
 from ..tts import Queue
 import keyboard
 import pyglet
-from RealtimeSTT import AudioToTextRecorder
+from vosk import KaldiRecognizer, Model
+import pyaudio
 from .. import settings
 import threading
+
+p = pyaudio.PyAudio()
 
 possible_server_types = Literal[socket.SOCK_STREAM,socket.SOCK_DGRAM] # Possible socket types
 DEFAULT_COMPUTER_IP = socket.gethostbyname(socket.gethostname()) # The machine ip of the running system
@@ -53,7 +57,8 @@ class Server:
     ip:int
     tts_queue:Queue
     is_alive:bool = True
-    recorder:AudioToTextRecorder
+    model:Model = Model("vosk_listener")
+    recognizer:KaldiRecognizer = KaldiRecognizer(model,160000)
     
     def __init__(self,port:int=8080,ip:str=DEFAULT_COMPUTER_IP,family:socket.AddressFamily=socket.AF_INET):
         """
@@ -69,9 +74,6 @@ class Server:
             family:
                 The address family to use (this shouldn't be changed)
         """
-        
-        # Generate recorder (this restarts program)
-        self.recorder = AudioToTextRecorder(language=settings.LANGUAGE,spinner=False)
 
         # Save chosen inputs
         self.port = port
@@ -206,6 +208,24 @@ class Server:
         
         # Start pyglet
         server_ticker.start_pyglet_server(server=self)
+        
+            
+    def get_said(self):
+        
+        # Make an audio stream
+        stream = p.open(format=pyaudio.paInt16, channels=1, rate=160000, input=True,frames_per_buffer=8192)
+        stream.start_stream()
+        
+        data = stream.read(4096,exception_on_overflow=False)
+        
+        # Read data
+        if self.recognizer.AcceptWaveform(data):
+            result = json.loads(self.recognizer.Result())
+            stream.stop_stream()
+            return result["text"]
+        
+        stream.stop_stream()
+        return ""
 
 class Client:
     
