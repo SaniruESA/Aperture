@@ -1,7 +1,7 @@
 # -*- mode: python ; coding: utf-8 -*-
 from PyInstaller.utils.hooks import collect_all
 
-datas = [('code_modification/supported.json', 'code_modification')]
+datas = [('code_modification')]
 binaries = []
 hiddenimports = ['github', 'github.Auth', 'github.GithubException', 'git', 'gitdb', 'gitdb.db', 'smmap', 'requests', 'urllib3', 'certifi', 'charset_normalizer', 'idna', 'pyperclip', 'huggingface_hub', 'edge_tts']
 tmp_ret = collect_all('github')
