@@ -1,6 +1,7 @@
 """
 For help menu returns from the server
 """
+
 from ..server import Server
 import socket
 
@@ -112,17 +113,19 @@ Adds a popup to the screen with tts as well
 The rectangle around it is based on the length of the text, \\n is supported
 """
 
-def format_json(item:str):
+
+def format_json(item: str):
     """
     Formats the item in a json packet
-    
+
     Arguments:
         item:
             The string without any curly brackets around it
     """
-    
+
     # Add json to packet
-    return '{"type":"help","content:"'+item+'"}'
+    return '{"type":"help","content:"' + item + '"}'
+
 
 help_decrypt = {
     "": HELP_MENU,
@@ -132,32 +135,37 @@ help_decrypt = {
     "add_button": HELP_ADD_BUTTON,
     "clear_button": HELP_CLEAR_BUTTON,
     "update_window": HELP_UPDATE_WINDOW,
-    "add_popup": HELP_ADD_POPUP
-    
+    "add_popup": HELP_ADD_POPUP,
 }
 
-def help_menu(server:Server,recv_json:dict,conn:socket.socket):
+
+def help_menu(server: Server, recv_json: dict, conn: socket.socket):
     """
     Sends back help menu from server
-    
+
     Arguments:
         server:
             Server instance
         recv_json:
             Received json content
     """
-    
+
     # If they are looking for a specific type
     if "content" in recv_json:
-        
+
         content = recv_json["content"]
-            
+
         if content in help_decrypt:
-            server.send(help_decrypt[content],conn)
+            server.send(help_decrypt[content], conn)
         else:
-            server.send(format_json("I don't know what help you are trying to access, send help with no content to view full help menu"),conn)
-    
+            server.send(
+                format_json(
+                    "I don't know what help you are trying to access, send help with no content to view full help menu"
+                ),
+                conn,
+            )
+
     # If they are looking for anything
     else:
-        
-        server.send(HELP_MENU,conn)
+
+        server.send(HELP_MENU, conn)

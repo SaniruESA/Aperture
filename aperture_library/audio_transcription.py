@@ -24,16 +24,16 @@ match platform.system():
 # Grant access to the file path
 os.chmod(exe_path, 0o755)
 
+
 # Open a subprocess for reading subtitle bytestream
 def start_process():
     global process
     process = subprocess.Popen(
-        [exe_path],
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE
+        [exe_path], stdout=subprocess.PIPE, stderr=subprocess.PIPE
     )
-    
+
     threading.Thread(target=show_subtitles, daemon=True).start()
+
 
 def show_subtitles():
 
@@ -46,10 +46,10 @@ def show_subtitles():
         while byte_chunk != b"\n":
             byte_chunk = process.stdout.read(1)
             subtitle_chunk += byte_chunk.decode("utf-8")
-            
+
             # Update the subtitle in the UI
             ui.CAPTION_SUB = subtitle_chunk
-        
+
         # See if process is finished
         if not byte_chunk:
             break

@@ -1,7 +1,9 @@
 """
 Entry point file for Aperture Library.
 """
+
 from aperture_library import library_checker
+
 library_checker.verify_lib()
 
 
@@ -13,6 +15,6 @@ if __name__ == "__main__":
 
     logger.set_stdout()
     logger.clear()
-    print("\x1b[2J\x1b[HServer Starting...",end="")
+    print("\x1b[2J\x1b[HServer Starting...", end="")
 
     server.fast_start()

@@ -2,6 +2,7 @@
 Main module for the code modification tool. Handles cmds from Electron main process, coordinates the overall flow of cloning repos, editing files, and creating pull requests.
 Contains utility functions for file operations and command handling.
 """
+
 import git_actions
 import os
 import json
@@ -13,11 +14,7 @@ import platform
 import supported
 
 
-supported_json = supported.supported 
-
-
-
-
+supported_json = supported.supported
 
 
 try:
@@ -25,6 +22,7 @@ try:
 except Exception:
     token = None
     traceback.print_exc(file=sys.stderr)
+
 
 def paste_aperture_executable(os_used: str):
 
@@ -37,21 +35,25 @@ def paste_aperture_executable(os_used: str):
             shutil.copy("lib_build/aperture", "local_repo")
 
 
-
-
 # Goes through all files in a repo, and edits them
-def edit_all_files(repo_link: str, entry_point_path: str = "", framework: str = "", os_used: str = "", testing: bool = False):
+def edit_all_files(
+    repo_link: str,
+    entry_point_path: str = "",
+    framework: str = "",
+    os_used: str = "",
+    testing: bool = False,
+):
     """
     Clones the repository, detects UI elements, generates necessary server functions, runs aperture helper code if entry point provided, and creates a pull request with the changes.
-    
+
     Arguments:
     repo_link: The URL of the GitHub repository to clone and edit
     entry_point_path: The path to the entry point file in the repository
     framework: The UI framework used in the repository (used for determining which files to edit)
-    os_used: The operating system to determine which Aperture executable to use 
+    os_used: The operating system to determine which Aperture executable to use
     testing: (internal) Flag for skipping pr creation
     """
-    
+
     git_actions.clone_repo(repo_link, clone_dir="local_repo")
 
     frameworks = supported_json.get("frameworks", {})
@@ -74,7 +76,7 @@ def edit_all_files(repo_link: str, entry_point_path: str = "", framework: str = 
                 for key, value in response.items():
                     full_ui_json[key] = value
 
-    with open("local_repo/ui_elements.json","w") as fp:
+    with open("local_repo/ui_elements.json", "w") as fp:
         json.dump(full_ui_json, fp, indent=4)
 
     # run aperture helper only if an entry point is provided
@@ -96,13 +98,12 @@ def edit_all_files(repo_link: str, entry_point_path: str = "", framework: str = 
                 hf.eof_server_call(f"local_repo/{file}")
                 hf.handle_alerts(f"local_repo/{file}")
 
-
     paste_aperture_executable(os_used)
 
     repo_name = repo_link.split("/")[-1].split(".")[0]
-    git_actions.create_pull_request(repo_name=repo_name,
-                                    branch_name="accessibility-updates",
-                                    token=token)
+    git_actions.create_pull_request(
+        repo_name=repo_name, branch_name="accessibility-updates", token=token
+    )
 
 
 # This will have multiple conditions later, just one communication for now
@@ -117,12 +118,20 @@ def handle_command(cmd: dict):
     if action == "run_edit_all":
         testing = bool(cmd.get("testing", False))
         try:
-            edit_all_files(cmd.get("repo_link"), cmd.get("entry_point_path", ""), cmd.get("framework", ""), testing=testing)
+            edit_all_files(
+                cmd.get("repo_link"),
+                cmd.get("entry_point_path", ""),
+                cmd.get("framework", ""),
+                testing=testing,
+            )
             print(json.dumps({"status": "ok", "action": action}), flush=True)
         except Exception as e:
             traceback.print_exc(file=sys.stderr)
             sys.stderr.flush()
-            print(json.dumps({"status": "error", "action": action, "error": str(e)}), flush=True)
+            print(
+                json.dumps({"status": "error", "action": action, "error": str(e)}),
+                flush=True,
+            )
 
 
 if __name__ == "__main__":
@@ -149,7 +158,10 @@ if __name__ == "__main__":
                 try:
                     cmd = json.loads(line)
                 except json.JSONDecodeError:
-                    print(json.dumps({"status": "error", "error": "invalid_json"}), flush=True)
+                    print(
+                        json.dumps({"status": "error", "error": "invalid_json"}),
+                        flush=True,
+                    )
                     continue
                 try:
                     handle_command(cmd)

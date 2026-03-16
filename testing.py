@@ -3,10 +3,12 @@ import pyaudio
 import json
 
 model = Model("vosk_listener")
-recognizer = KaldiRecognizer(model,160000)
+recognizer = KaldiRecognizer(model, 160000)
 
 p = pyaudio.PyAudio()
-stream = p.open(format=pyaudio.paInt16, channels=1, rate=160000, input=True,frames_per_buffer=8192)
+stream = p.open(
+    format=pyaudio.paInt16, channels=1, rate=160000, input=True, frames_per_buffer=8192
+)
 stream.start_stream()
 
 print("Listening")
