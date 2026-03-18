@@ -17,7 +17,8 @@ contextBridge.exposeInMainWorld('API', {
     },
     onDone: (cb) => {
         ipcRenderer.on('done-link', (_e, url) => { try { cb(url) } catch (e) {} })
-    }
+    },
+    onProgess: (cb) => ipcRenderer.on('progress', (_e, msg) => cb(msg))
 });
 
 // allow renderer to request last done link synchronously via invoke
