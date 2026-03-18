@@ -219,7 +219,7 @@ def _voice_command_server_threaded(server: Server):
     Tick voice command server
     """
     # Preprocess listening text
-    path = f".\\temp\\voice_assistant_listening.mp3"
+    path = ".\\temp\\voice_assistant_listening.mp3"
     threading.Thread(
         target=generate_button_tts, args=(settings.VOICE_ACTIVATION_CONFIRMATION, path)
     ).start()
@@ -244,7 +244,7 @@ def _voice_command_server_threaded(server: Server):
 
             # Say that AI is listening
             server.tts_queue.queue_play(
-                f".\\temp\\voice_assistant_listening.mp3",
+                ".\\temp\\voice_assistant_listening.mp3",
                 -1,
                 settings.VOICE_ACTIVATION_CONFIRMATION,
                 True,
@@ -331,7 +331,7 @@ def tick(server: Server, conn: socket.socket):
         content_type: str = recv_json["type"]
 
     # Stop if data is unable to be read
-    except:
+    except Exception:
         error(f"Malformed json data: {recv_data}", __name__)
 
         # Return back error

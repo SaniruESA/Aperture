@@ -24,6 +24,13 @@ DEFAULT_COMPUTER_IP = socket.gethostbyname(
 
 
 def generic_recv(sock: socket.socket):
+    """
+    Generic recv data function for a socket
+
+    Arguments:
+        sock:
+            The socket instance
+    """
 
     # Read and decode
 
@@ -45,6 +52,15 @@ def generic_recv(sock: socket.socket):
 
 
 def generic_send(sock: socket.socket, data: str):
+    """
+    Generic send function for socket
+
+    Arguments:
+        sock:
+            The socket instance
+        data:
+            The data to send (this should be a string that will then be encoded)
+    """
 
     # Find length header
     length = len(data)
@@ -63,7 +79,7 @@ class Server:
     is_alive: bool = True
     model: Model = Model("vosk_listener")
     recognizer: KaldiRecognizer = KaldiRecognizer(model, 160000)
-    
+
     # Make an audio stream for all servers
     stream = p.open(
         format=pyaudio.paInt16,
@@ -97,7 +113,7 @@ class Server:
         self.port = port
         self.ip = ip
         self.family = family
-        
+
         # Begin audio stream
         if self.stream.is_active():
             self.stream.start_stream()
@@ -240,7 +256,7 @@ class Server:
     def get_said(self):
 
         said_text = ""
-        
+
         while not said_text:
             data = self.stream.read(4096, exception_on_overflow=False)
 
@@ -248,7 +264,7 @@ class Server:
             if self.recognizer.AcceptWaveform(data):
                 result = json.loads(self.recognizer.Result())
                 said_text = result["text"]
-            
+
         return said_text
 
 

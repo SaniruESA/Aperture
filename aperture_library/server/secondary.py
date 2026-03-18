@@ -5,7 +5,7 @@ communication within Aperture Library.
 
 import socket
 from . import DEFAULT_COMPUTER_IP, possible_server_types
-from ..logger.basic_logs import *
+from ..logger.basic_logs import warn, info, error, critical
 import threading
 
 
