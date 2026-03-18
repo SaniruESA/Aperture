@@ -16,6 +16,7 @@ if __name__ == "__main__":
 
     easy_client.add_button([0, 0, 50, 50], "Button Numero Uno")
     easy_client.add_button([300, 1400, 250, 150], "Home Page")
+    easy_client.add_button([600, 700, 250, 150], "Exit Home Page")
     easy_client.update_window([50, 50, 1000, 500])
     easy_client.add_popup("Hello!", (0, 0, 0), (255, 255, 255), (250, 300))
 

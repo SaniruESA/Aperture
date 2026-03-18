@@ -24,7 +24,7 @@ BLANK_PACKET_MAXIMUM: int = (
 BLANK_PACKET_COUNT: int = 0  # Number of blank packets received
 SERVER_ASYNC_THREAD: threading.Thread = None  # Async thread for server
 PYGLET_ASYNC_THREAD: threading.Thread = None  # Async thread for pyglet
-SERVER: Server  # Last used server for tick
+SERVER: Server = None  # Last used server for tick
 
 
 def queue_generate_tts(server: Server, recv_json: dict, conn: socket.socket):

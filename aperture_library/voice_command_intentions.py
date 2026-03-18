@@ -23,7 +23,7 @@ intention_json = [
     },
     {
         "intention_type": "type_input",
-        "triggers": ["type XXX", "enter XXX", "fill in XXX", "write XXX in the XXX field", "set XXX to XXX"],
+        "triggers": ["type XXX", "enter XXX", "fill in XXX", "write XXX"],
     },
     {
         "intention_type": "select_option",

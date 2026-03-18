@@ -7,9 +7,7 @@ Runs asynchronously with Aperture library to provide live
 voice command functionality.
 """
 
-import json
 from .keyboard_nav import TabNavOrder
-import keyboard
 import pyautogui
 from . import ui
 import re
@@ -44,11 +42,12 @@ def press_button(page_name: str, high_priority_kwds: list[str] = []):
 
     # Filter so only UI elements matching a high-priority
     # keyword are inclued
-    high_priority_kwds = [x.lower() for x in high_priority_kwds]
-    page_button = [
-        x for x in page_button
-        if x.lower() in high_priority_kwds
-    ]
+    if (high_priority_kwds != []):
+        high_priority_kwds = [x.lower() for x in high_priority_kwds]
+        page_button = [
+            x for x in page_button
+            if x["ariaText"].lower() in high_priority_kwds
+        ]
 
     # Return if none are found
     if len(page_button) == 0:
