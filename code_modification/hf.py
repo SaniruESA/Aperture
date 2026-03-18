@@ -38,7 +38,7 @@ def prompt_code(code:str, prompt:str, return_code:bool=True):
 
     show_code_prompt = ""
     if return_code:
-        show_code_prompt = "Return a version of the initially given code with this function added. DO NOT leave out any code in the output."
+        show_code_prompt = "Return a version of the initially given code with the requested functionality added. DO NOT leave out any code in the output. And be conservative; prefer false negatives to false positives."
 
     # Get the edited code
     response = query({
@@ -125,9 +125,12 @@ def run_aperture_code(path:str):
     language = path.split(".")[-1]
 
     # Make prompt
-    prompt = f"""Generate a {language} function called aperture_runner that runs either an .exe, .app, or extensionless file if the user is on Windows, Mac, or Linux, respectively.
+    prompt = f"""Generate a {language} function called aperture_runner that runs either an .exe or .app file if the user is on Windows or Mac, respectively.
+    Be 100% sure any libraries/modules you may use are properly imported - if they aren't already, import them.
     You must check the OS of the user during the runtime of the code to determine which one to run.
-    The path of the will always be in the format "./aperture" followed by the file extension, if applicable."""
+    The path of the will always be in the format "./aperture" followed by the file extension.
+    Subsequently, call the function as early as possible in the file.
+    """
 
     # Load file
     with open(path,"r") as fp:
@@ -248,6 +251,28 @@ def handle_alerts(path:str):
     with open(path,"w") as fp:
         fp.write(remove_markdown(output))
 
+def handle_errors(path:str):
+    """
+    Handles potential uncaught syntax/runtime errors uncaught after the
+    culmination of previous code editing.
+
+    Arguments:
+        path: The file path of the code to modify for handling errors
+    """
+    # Make prompt
+    prompt = f"""Scan through the file searching for syntax, runtime, or obvious logic errors, and fix them as efficiently as possible. Avoid removing any code; rather, patch errors with new code. Err on the safe side; if something isn't clearly a logic error, do not fix it."""
+
+    # Load file
+    with open(path,"r") as fp:
+        orig = fp.read()
+        
+    # Analyze file with prompt (EOF server call)
+    output = prompt_code(orig, prompt)
+
+    # Write to original file
+    with open(path,"w") as fp:
+        fp.write(remove_markdown(output))
+
 
 # Other functions
 class Item:
@@ -319,4 +344,3 @@ def remove_markdown(output:str):
     separator = "\n"
     return separator.join(important)
     
-# print("\n".join([str(n) for n in edit_file("../testing_examples/Tkinter/test.py")["button"]]))

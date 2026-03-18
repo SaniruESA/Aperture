@@ -10,6 +10,7 @@ voice command functionality.
 from RealtimeSTT import AudioToTextRecorder
 import json
 from .keyboard_nav import TabNavOrder
+import keyboard
 import pyautogui
 from . import ui
 import re
@@ -26,27 +27,33 @@ def get_window():
     Helper to get the current position of the pyglet window
     """
     global win_x, win_y
-
     win_x, win_y, _, _ = ui.window_stats
 
 
-def press_button(page_name: str):
+def press_button(page_name: str, high_priority_kwds: list[str] = []):
     """Function to carry out user intention of pressing button/moving pages"""
 
     # Search for a button w/ given name within UI registry
     all_buttons = server_ticker.SERVER.keyboardtab.getUIElements()["button"]
     page_button = [
-        x
-        for x in all_buttons
+        x for x in all_buttons
         if (
             page_name.lower() in x["ariaText"].lower()
             or x["ariaText"].lower() in page_name.lower()
         )
     ]
 
+    # Filter so only UI elements matching a high-priority
+    # keyword are inclued
+    high_priority_kwds = [x.lower() for x in high_priority_kwds]
+    page_button = [
+        x for x in page_button
+        if x.lower() in high_priority_kwds
+    ]
+
     # Return if none are found
     if len(page_button) == 0:
-        return
+        return -1
 
     else:
         # Press the button and return mouse to original location
@@ -58,14 +65,38 @@ def press_button(page_name: str):
         print(rect[0] + rect[2] / 2 + win_x, rect[1] + rect[3] / 2 + win_y)
         pyautogui.position(mousePos.x, mousePos.y)
 
+        # Return 0 for success
+        return 0
+
+def close_page(page_name: str):
+    """Function to carry out user intention of closing/exiting pages"""
+
+    # Search for buttons relating to closing the page
+    press_button(f"{page_name}", ["close", "dismiss", "leave", "exit"])
+
+def search(to_search: str):
+    """Function to carry out user intention of searching (via search bar)"""
+
+    # Find/click on search bar
+    press_button("search")
+
+    # Type intention into search bar
+    pyautogui.write(to_search)
+    pyautogui.press("enter")
 
 # Map user intention to functions defined above
-intention_to_function = {"move_screens": press_button, "press_button": press_button}
-
+intention_to_function = {
+                        "move_screens": press_button,
+                        "press_button": press_button,
+                        "open_menu": press_button,
+                        "close_or_dismiss": close_page,
+                        "type_input": pyautogui.write,
+                        "select_option": press_button,
+                        "search": search,
+                    }
 
 def interpret_intentions(command: str):
     """Interpret user intentions based on their vocal input"""
-    # print("COMMAND", command)
 
     # Search through defined set of intentions
     for intention in intention_json:

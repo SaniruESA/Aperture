@@ -13,4 +13,24 @@ intention_json = [
         "intention_type": "press_button",
         "triggers": ["click the XXX", "press the XXX", "tap the XXX", "hit the XXX"],
     },
+    {
+        "intention_type": "open_menu",
+        "triggers": ["open the XXX menu", "show the XXX menu", "expand XXX", "pull up XXX"],
+    },
+    {
+        "intention_type": "scroll",
+        "triggers": ["scroll down", "scroll up", "scroll to the XXX", "go down a bit", "move up the page"],
+    },
+    {
+        "intention_type": "type_input",
+        "triggers": ["type XXX", "enter XXX", "fill in XXX", "write XXX in the XXX field", "set XXX to XXX"],
+    },
+    {
+        "intention_type": "select_option",
+        "triggers": ["select XXX", "choose XXX", "pick XXX", "switch to XXX", "set it to XXX"],
+    },
+    {
+        "intention_type": "search",
+        "triggers": ["search for XXX", "look up XXX", "find XXX", "search XXX"],
+    },
 ]
