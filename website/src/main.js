@@ -1,3 +1,8 @@
+// main.js - Electron main process
+// This class creates the main UI window and initializes the accompanying python process, as well
+// as handling all requests from the UI and python script (opens external URLs when necessary).
+// The functionality of this class was tested through verification that external links were opened in browser 
+// window and through end-to-end testing on the entire UI system.
 const { app, BrowserWindow, ipcMain, shell } = require('electron')
 const { spawn } = require('child_process')
 const path = require('path')
@@ -6,7 +11,6 @@ const fs = require('fs')
 let pythonProcess = null
 let pythonStarting = false
 let mainWindow = null
-
 function startPythonProcess() {
   if (pythonProcess && !pythonProcess.killed && pythonProcess.exitCode === null) return
   pythonStarting = true

@@ -1,3 +1,5 @@
+// preload.js - interactor between main and renderer scripts
+// Provides API for function callbacks
 const {contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('API', {

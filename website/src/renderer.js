@@ -1,4 +1,9 @@
-// Upon DOM loading, takes input from HTML page
+// renderer.js - UI behavior for index/loading pages
+// Responsible for handling all input fields in the Aperture app, and enforces
+// certian behaviors (e.g. correct repo link)
+// Also handles error messages and passes telemetry to loading page log html
+// Tested functionality via forcing errors (wrong github link input, try running when all fields not filled),
+// as well as testing all parameters were passed to the main Electron process successfully via debug.
 document.addEventListener('DOMContentLoaded', () => {
   const input = document.getElementById('githublink')
   const entryInput = document.getElementById('entrypoint')
