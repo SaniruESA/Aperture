@@ -63,6 +63,15 @@ class Server:
     is_alive: bool = True
     model: Model = Model("vosk_listener")
     recognizer: KaldiRecognizer = KaldiRecognizer(model, 160000)
+    
+    # Make an audio stream for all servers
+    stream = p.open(
+        format=pyaudio.paInt16,
+        channels=1,
+        rate=160000,
+        input=True,
+        frames_per_buffer=8192,
+    )
 
     def __init__(
         self,
@@ -88,6 +97,10 @@ class Server:
         self.port = port
         self.ip = ip
         self.family = family
+        
+        # Begin audio stream
+        if self.stream.is_active():
+            self.stream.start_stream()
 
         # Generate server
         try:
@@ -226,26 +239,17 @@ class Server:
 
     def get_said(self):
 
-        # Make an audio stream
-        stream = p.open(
-            format=pyaudio.paInt16,
-            channels=1,
-            rate=160000,
-            input=True,
-            frames_per_buffer=8192,
-        )
-        stream.start_stream()
+        said_text = ""
+        
+        while not said_text:
+            data = self.stream.read(4096, exception_on_overflow=False)
 
-        data = stream.read(4096, exception_on_overflow=False)
-
-        # Read data
-        if self.recognizer.AcceptWaveform(data):
-            result = json.loads(self.recognizer.Result())
-            stream.stop_stream()
-            return result["text"]
-
-        stream.stop_stream()
-        return ""
+            # Read data
+            if self.recognizer.AcceptWaveform(data):
+                result = json.loads(self.recognizer.Result())
+                said_text = result["text"]
+            
+        return said_text
 
 
 class Client:

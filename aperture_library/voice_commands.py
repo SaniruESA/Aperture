@@ -7,7 +7,6 @@ Runs asynchronously with Aperture library to provide live
 voice command functionality.
 """
 
-from RealtimeSTT import AudioToTextRecorder
 import json
 from .keyboard_nav import TabNavOrder
 import keyboard
