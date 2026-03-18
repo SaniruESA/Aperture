@@ -4,7 +4,7 @@ All functions will return the servers response
 """
 
 from .. import server
-from ..logger.basic_logs import *
+from ..logger.basic_logs import info, warn, debug, error, critical
 import json
 from .. import settings
 
