@@ -178,6 +178,7 @@ def verify_lib():
     check_library("pyautogui", "pyautogui", "0.9.54")
     check_library("keyboard", "keyboard", "0.13.5")
     check_library("vosk", "vosk", "0.3.45")
+    check_library("pyaudio","pyaudio","0.2.14")
 
     # Download libraries
     install_all()
