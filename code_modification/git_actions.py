@@ -1,6 +1,6 @@
 # DEPENDENCIES REQUIRED: stuff for PyGithub, GitPython
 """
-This module contains functions for interacting with GitHub, including authentication, cloning repos, committing changes, and creating pull requests. It uses the PyGithub library for GitHub API interactions and GitPython for local git operations.
+This module contains functions for interacting with GitHub, including authentication, cloning repos, committing changes, and creating releases. It uses the PyGithub library for GitHub API interactions and GitPython for local git operations.
 """
 from github import Github, Auth, GithubException
 from git import Repo
@@ -131,7 +131,7 @@ def stage_and_commit(repo_dir, commit_message="Added all accessibility features"
     repo = Repo(repo_dir)
     with repo.config_writer() as cw:
 
-        # Methods to ensure pushing large repos works
+        # Methods to ensure large repos work
         try:
             cw.set_value("http", "postBuffer", "524288000")
             cw.set_value("http", "version", "HTTP/1.1")
@@ -147,7 +147,7 @@ def stage_and_commit(repo_dir, commit_message="Added all accessibility features"
     origin = repo.remote(name=remote_name)
 
     # Delete remote branch if it already exists
-    remote_branches = [ref.name.split('/')[-1] for ref in origin.refs]  # list of remote branch names
+    remote_branches = [ref.name.split('/')[-1] for ref in origin.refs]
     if new_branch in remote_branches:
         print(f"Deleting remote branch '{new_branch}'")
         origin.push(f":{new_branch}")  
@@ -206,16 +206,14 @@ def stage_and_commit(repo_dir, commit_message="Added all accessibility features"
 
 
 
-def create_pull_request(repo_name, branch_name, token, base_branch="main", repo_dir="local_repo"):
+def create_release(repo_name, token, repo_dir="local_repo"):
     """
-    TODO: CHANGE HIS
-    Creates a pull request on GitHub from the new branch created by stage_and_commit to the base branch (default: "main"). It includes retries for handling GitHub server errors.
+    Creates a release on GitHub created by stage_and_commit.
+    It includes retries for handling GitHub server errors.
 
     Arguments:
         repo_name: The name of the GitHub repository (e.g., "username/repo")
-        branch_name: The name of the branch to create the pull request from (e.g., "accessibility-updates")
         token: The GitHub access token for authentication
-        base_branch: The name of the base branch to merge into (default: "main")
         repo_dir: The local directory of the git repository (default: "local_repo")
     """
     # Authenticate to GitHub and get repository
@@ -232,49 +230,52 @@ def create_pull_request(repo_name, branch_name, token, base_branch="main", repo_
         tag = f"auto-upload-{timestamp}"
         release = repo.create_git_release(tag=tag, name=f"Auto upload {timestamp}", message="Automated upload of modified repo", draft=True)
         
-        # Robust upload using requests with retries and streaming
-        def _upload_asset_via_requests(file_path, label):
-            upload_template = release.raw_data.get("upload_url")
-            if not upload_template:
-                raise RuntimeError("release upload_url not found")
-            upload_url = upload_template.split("{", 1)[0]
-            params = {"name": os.path.basename(file_path), "label": label}
-
-            session = requests.Session()
-            if Retry is not None and HTTPAdapter is not None:
-                try:
-                    retries = Retry(total=5, backoff_factor=1, status_forcelist=(500, 502, 503, 504))
-                    adapter = HTTPAdapter(max_retries=retries)
-                    session.mount("https://", adapter)
-                    session.mount("http://", adapter)
-                except Exception:
-                    pass
-
-            headers = {
-                "Authorization": f"token {token}",
-                "Content-Type": "application/zip",
-                "Accept": "application/vnd.github.v3+json",
-            }
-
-            with open(file_path, "rb") as fh:
-                try:
-                    resp = session.post(upload_url, params=params, data=fh, headers=headers, timeout=(10, 1200))
-                    resp.raise_for_status()
-                    return resp.json()
-                finally:
-                    session.close()
-
         failed = False
         try:
             try:
-                _upload_asset_via_requests(zip_path, os.path.basename(zip_path))
+                
+                # Upload using requests with retries and streaming
+                upload_template = release.raw_data.get("upload_url")
+                if not upload_template:
+                    raise RuntimeError("release upload_url not found")
+                upload_url = upload_template.split("{", 1)[0]
+                params = {"name": os.path.basename(zip_path), "label": os.path.basename(zip_path)}
+
+                session = requests.Session()
+                if Retry is not None and HTTPAdapter is not None:
+                    try:
+                        retries = Retry(total=5, backoff_factor=1, status_forcelist=(500, 502, 503, 504))
+                        adapter = HTTPAdapter(max_retries=retries)
+                        session.mount("https://", adapter)
+                        session.mount("http://", adapter)
+                    except Exception:
+                        pass
+
+                headers = {
+                    "Authorization": f"token {token}",
+                    "Content-Type": "application/zip",
+                    "Accept": "application/vnd.github.v3+json",
+                }
+
+                with open(zip_path, "rb") as fh:
+                    try:
+                        resp = session.post(upload_url, params=params, data=fh, headers=headers, timeout=(10, 1200))
+                        resp.raise_for_status()
+                        return resp.json()
+                    finally:
+                        session.close()
+
                 print(f"Release asset uploaded: {release.html_url}")
-                # print(json.dumps({"action": "open_url", "url": release.html_url}), flush=True)
+                # Notify Electron UI about the release URL so it can open and display it
+                try:
+                    print(json.dumps({"action": "open_url", "url": release.html_url}), flush=True)
+                except Exception:
+                    pass
             except Exception:
                 traceback.print_exc(file=sys.stderr)
                 failed = True
 
-            # If requests upload failed, try gh CLI as a fallback for large files
+            # If requests upload failed, try CLI as a fallback for large files
             if failed:
                 if shutil.which("gh"):
                     try:
@@ -292,7 +293,7 @@ def create_pull_request(repo_name, branch_name, token, base_branch="main", repo_
         except Exception:
             traceback.print_exc(file=sys.stderr)
 
-        # Clean up local zip
+        # Clean up the local zip
         try:
             os.remove(zip_path)
         except Exception:

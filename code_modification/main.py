@@ -1,6 +1,6 @@
 
 """
-Main module for the code modification tool. Handles cmds from Electron main process, coordinates the overall flow of cloning repos, editing files, and creating pull requests.
+Main module for the code modification tool. Handles cmds from Electron main process, coordinates the overall flow of cloning repos, editing files, and creating releases.
 Contains utility functions for file operations and command handling. Also emits telemetry to stdout
 """
 
@@ -22,6 +22,8 @@ def resource_path(rel_path: str) -> str:
         base = os.path.dirname(__file__)
     return os.path.join(base, rel_path)
 
+# Supported Aperture frameworks
+# (non-supported frameworks will have slower conversions)
 supported_json = supported.supported
 
 def send_progress(text: str):
@@ -75,8 +77,21 @@ def paste_aperture_executable():
         traceback.print_exc(file=sys.stderr)
         send_progress("Failed to insert Aperture helper folder")
 
+def get_extensions(directory):
+    """Gets all unique file extensions in a given directory.
+    Used if unsupported framework is provided, to just mark every
+    file as type_a and type_b."""
+    extensions = set()
+    for _, _, files in os.walk(directory):
+        for file in files:
+            _, ext = os.path.splitext(file)
+            if ext:
+                extensions.add(ext)
+    return extensions
+
 def edit_all_files(repo_link: str, entry_point_path: str = "", framework: str = "", os_used: str = "", testing: bool = False):
-    """edit all the file"""
+    """Edits all the files to implement all accessibility features."""
+
     send_progress("Starting edit_all_files")
     send_progress("Cloning repository")
     try:
@@ -87,13 +102,15 @@ def edit_all_files(repo_link: str, entry_point_path: str = "", framework: str = 
         send_progress(f"Failed to clone repository: {e}")
         raise
 
+    # Gather type_a/type_b files (type_a are files where UI is defined,
+    # type_b are files where code functionality is defined)
     frameworks = supported_json.get("frameworks", {})
     if framework and framework in frameworks:
         type_a = tuple(frameworks[framework].get("type_a", []))
         type_b = tuple(frameworks[framework].get("type_b", []))
     else:
-        type_a = tuple()
-        type_b = tuple()
+        type_a = tuple(get_extensions("local_repo"))
+        type_b = tuple(get_extensions("local_repo"))
 
     full_ui_json = {}
 
@@ -181,7 +198,7 @@ def edit_all_files(repo_link: str, entry_point_path: str = "", framework: str = 
     except Exception:
         pass
 
-    send_progress(f"Preparing pull request for {repo_full}")
+    send_progress(f"Preparing release for {repo_full}")
 
     # Authenticate and create PR
     try:
@@ -192,11 +209,11 @@ def edit_all_files(repo_link: str, entry_point_path: str = "", framework: str = 
         send_progress("GitHub authentication failed")
 
     try:
-        git_actions.create_pull_request(repo_name=repo_full, branch_name="accessibility-updates", token=token)
-        send_progress("Pull request created")
+        git_actions.create_release(repo_name=repo_full, token=token)
+        send_progress("Release created")
     except Exception as e:
         traceback.print_exc(file=sys.stderr)
-        send_progress(f"Failed to create pull request: {e}")
+        send_progress(f"Failed to create release: {e}")
         raise
 
 def handle_command(cmd: dict):

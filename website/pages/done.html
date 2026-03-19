@@ -81,6 +81,10 @@
             .complete {
                 color: #65EE8C;
             }
+            .note {
+                color: white;
+                font-style: italic;
+            }
             #return_button {
                 background: #719EFF;
                 color:white;
@@ -107,8 +111,9 @@
 
             <div id="log_box">
                 <p id="log">
-                    <span class="complete">-Your codebase has been modified!</span><br>
-                    <span class="complete">-The repository should have opened automatically.</span><br>
+                    <span class="complete">-Your codebase is currently being modified.</span><br>
+                    <span class="complete">-Expect it to take a few minutes.</span><br><br>
+                    <span class="note">Please note that Aperture's code edits are powered by AI and may not be 100% accurate. We recommend you double check the output.</span><br>
                 </p>
             </div>
         </div>
@@ -116,6 +121,12 @@
             <h1>
                 Request Received!
             </h1>
+        </div>
+        <div style="position: absolute; left:25%; top:380px; width:50%;">
+            <div id="doneBox" style="background:#1d2027;padding:12px;border-radius:8px;border:2px solid #8B6B99;color:#dfe6e9;box-shadow:0 6px 16px rgba(0,0,0,0.2);">
+                <div id="doneText">When the release is ready, visit it here:</div>
+                <a id="doneLink" href="#" target="_blank" style="color:#9fbef2;display:block;margin-top:8px;word-break:break-all"></a>
+            </div>
         </div>
         <script>
         // wait for main to send the final repo url
