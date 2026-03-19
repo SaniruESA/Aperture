@@ -370,5 +370,9 @@ log.txt
 /local_repo
 .env
 /dist
+/build
 /buildwebsite/dist/
+website/dist/mac-arm64/
+website/dist/*.blockmap
+website/dist/builder-debug.yml
 .DS_Store
