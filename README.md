@@ -1,5 +1,9 @@
 # Aperture
 
+<img width="1948" height="1140" alt="image" src="https://github.com/user-attachments/assets/860d45eb-3b48-4c0c-bfbf-287f30492c77" />
+
+## Introduction
+
 The world needs instantly inclusive software that empowers blind and deaf users to participate equally in society. Many modern solutions, such as screen readers or subtitle generators, are reverse-engineered workarounds with frustrating accessibility gaps. These tools don’t function properly with every software, creating critical accessibility problems such as broken tab navigation or inaccurate text-to-speech readouts that ultimately confuse the user. Software should simply work for everyone out-of-the-box. So instead of patching problems in software, why not engineer an exemplary solution from the start?
 
 Aperture is a software-augmenting tool that ensures blind and deaf people get equal access while using any software, automatically. Aperture is the first of its kind to give any desktop application/software native accessibility through automated code editing that implements important assistive features such as keyboard navigation and voice commands. Aperture works directly with a software’s code, rather than reverse engineering with screen readers or subtitles, and it’s simply a matter of copy-pasting a GitHub link. By leveraging a HuggingFace LLM (Qwen-Coder-30B), our software is able to edit entire codebases and make them accessible in minutes.
