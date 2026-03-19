@@ -1,40 +1,12 @@
 # -*- mode: python ; coding: utf-8 -*-
-from PyInstaller.utils.hooks import collect_all
-
-datas = [
-    ('code_modification', 'code_modification'),
-    ('aperture_library', 'aperture_library'),
-    ('supported.json', '.'),
-]
-binaries = []
-hiddenimports = [
-    'github', 'github.Auth', 'github.GithubException',
-    'git', 'gitdb', 'gitdb.db', 'smmap',
-    'requests', 'urllib3', 'certifi', 'charset_normalizer', 'idna',
-    'pyperclip', 'huggingface_hub', 'edge_tts',
-    'vosk', 'pyaudio', 'keyboard', 'pyautogui', 'pyglet', 'pygame',
-]
-
-collect_packages = [
-    'github', 'git', 'gitdb', 'smmap',
-    'requests', 'urllib3', 'certifi', 'charset_normalizer', 'idna',
-    'pyperclip', 'huggingface_hub', 'edge_tts',
-    'vosk', 'pyaudio', 'keyboard', 'pyautogui', 'pyglet', 'pygame',
-]
-for pkg in collect_packages:
-    try:
-        tmp_ret = collect_all(pkg)
-        datas += tmp_ret[0]; binaries += tmp_ret[1]; hiddenimports += tmp_ret[2]
-    except Exception:
-        pass
 
 
 a = Analysis(
     ['code_modification/main.py'],
     pathex=[],
-    binaries=binaries,
-    datas=datas,
-    hiddenimports=hiddenimports,
+    binaries=[],
+    datas=[],
+    hiddenimports=[],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],

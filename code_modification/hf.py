@@ -36,7 +36,6 @@ def prompt_code(code:str, prompt:str, return_code:bool=True):
             The raw code
     """
 
-    return code
 
     show_code_prompt = ""
     if return_code:
@@ -60,7 +59,7 @@ def prompt_code(code:str, prompt:str, return_code:bool=True):
         "model": "Qwen/Qwen3-Coder-30B-A3B-Instruct:scaleway"
     })
 
-    # Get the content of the response
+    # Get the content of the responsex
     content = response["choices"][0]["message"]["content"]
     # print(content)
     
