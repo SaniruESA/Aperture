@@ -1,6 +1,6 @@
 
 """
-Main module for the code modification tool.Handles cmds from Electron main process, coordinates the overall flow of cloning repos, editing files, and creating pull requests.
+Main module for the code modification tool. Handles cmds from Electron main process, coordinates the overall flow of cloning repos, editing files, and creating releases.
 Contains utility functions for file operations and command handling. Also emits telemetry to stdout
 """
 
@@ -10,6 +10,7 @@ import json
 import shutil
 import traceback
 import platform
+import supported
 
 import git_actions
 
@@ -21,16 +22,9 @@ def resource_path(rel_path: str) -> str:
         base = os.path.dirname(__file__)
     return os.path.join(base, rel_path)
 
-def load_supported() -> dict:
-    """Load supported.json from resources"""
-    try:
-        with open(resource_path("supported.json"), "r", encoding="utf-8") as f:
-            return json.load(f)
-    except Exception:
-        traceback.print_exc(file=sys.stderr)
-        return {}
-
-supported_json = load_supported()
+# Supported Aperture frameworks
+# (non-supported frameworks will have slower conversions)
+supported_json = supported.supported
 
 def send_progress(text: str):
     """Emit a progress json object on stdout."""
@@ -41,47 +35,63 @@ def send_progress(text: str):
 
 def paste_aperture_executable():
     """Try to copy a prebuilt Aperture helper into local_repo if available."""
-    candidates = [
-        resource_path("lib_build/aperture"),
-        resource_path("lib_build/aperture.exe"),
-        os.path.join(os.path.dirname(__file__), "lib_build", "aperture"),
-        os.path.join(os.path.dirname(__file__), "lib_build", "aperture.exe"),
-        os.path.join(os.path.dirname(__file__), "..", "dist", "Aperture"),
-        os.path.join(os.path.dirname(__file__), "..", "website", "build", "python", "mac", "Aperture"),
-        os.path.join(os.path.dirname(__file__), "..", "website", "build", "python", "win", "Aperture.exe"),
-    ]
+    base = os.path.join(os.path.dirname(__file__), "lib_build")
+    is_windows = platform.system().lower().startswith("win")
+    src_dir = os.path.join(base, "windows") if is_windows else os.path.join(base, "mac")
 
-    want_exe = platform.system().lower().startswith("win")
-    found = None
-    for c in candidates:
-        if not c:
-            continue
-        if os.path.exists(c):
-            found = c
-            break
-        if want_exe and os.path.exists(c + ".exe"):
-            found = c + ".exe"
-            break
-
-    if not found:
-        send_progress("Aperture helper not found; skipping insertion")
+    if not os.path.isdir(src_dir):
+        send_progress("Aperture helper folder not found; skipping insertion")
         return
 
     try:
         os.makedirs("local_repo", exist_ok=True)
-        dst = os.path.join("local_repo", os.path.basename(found))
-        shutil.copy(found, dst)
+        dst = os.path.join("local_repo", os.path.basename(src_dir))
+
+        # If destination exists, remove it first (handle read-only files)
+        def _remove_readonly(func, path, exc_info):
+            try:
+                os.chmod(path, 0o755)
+            except Exception:
+                pass
+            func(path)
+
+        if os.path.exists(dst):
+            shutil.rmtree(dst, onerror=_remove_readonly)
+
+        shutil.copytree(src_dir, dst)
+
+        # Try to make files executable where appropriate
         try:
-            os.chmod(dst, 0o755)
+            for root, _, files in os.walk(dst):
+                for fname in files:
+                    fpath = os.path.join(root, fname)
+                    try:
+                        os.chmod(fpath, 0o755)
+                    except Exception:
+                        pass
         except Exception:
             pass
-        send_progress(f"Inserted Aperture helper from {found}")
+
+        send_progress(f"Inserted Aperture helper folder from {src_dir}")
     except Exception:
         traceback.print_exc(file=sys.stderr)
-        send_progress("Failed to insert Aperture helper")
+        send_progress("Failed to insert Aperture helper folder")
+
+def get_extensions(directory):
+    """Gets all unique file extensions in a given directory.
+    Used if unsupported framework is provided, to just mark every
+    file as type_a and type_b."""
+    extensions = set()
+    for _, _, files in os.walk(directory):
+        for file in files:
+            _, ext = os.path.splitext(file)
+            if ext:
+                extensions.add(ext)
+    return extensions
 
 def edit_all_files(repo_link: str, entry_point_path: str = "", framework: str = "", os_used: str = "", testing: bool = False):
-    """edit all the file"""
+    """Edits all the files to implement all accessibility features."""
+
     send_progress("Starting edit_all_files")
     send_progress("Cloning repository")
     try:
@@ -92,13 +102,15 @@ def edit_all_files(repo_link: str, entry_point_path: str = "", framework: str = 
         send_progress(f"Failed to clone repository: {e}")
         raise
 
+    # Gather type_a/type_b files (type_a are files where UI is defined,
+    # type_b are files where code functionality is defined)
     frameworks = supported_json.get("frameworks", {})
     if framework and framework in frameworks:
         type_a = tuple(frameworks[framework].get("type_a", []))
         type_b = tuple(frameworks[framework].get("type_b", []))
     else:
-        type_a = tuple()
-        type_b = tuple()
+        type_a = tuple(get_extensions("local_repo"))
+        type_b = tuple(get_extensions("local_repo"))
 
     full_ui_json = {}
 
@@ -186,7 +198,7 @@ def edit_all_files(repo_link: str, entry_point_path: str = "", framework: str = 
     except Exception:
         pass
 
-    send_progress(f"Preparing pull request for {repo_full}")
+    send_progress(f"Preparing release for {repo_full}")
 
     # Authenticate and create PR
     try:
@@ -197,11 +209,11 @@ def edit_all_files(repo_link: str, entry_point_path: str = "", framework: str = 
         send_progress("GitHub authentication failed")
 
     try:
-        git_actions.create_pull_request(repo_name=repo_full, branch_name="accessibility-updates", token=token)
-        send_progress("Pull request created")
+        git_actions.create_release(repo_name=repo_full, token=token)
+        send_progress("Release created")
     except Exception as e:
         traceback.print_exc(file=sys.stderr)
-        send_progress(f"Failed to create pull request: {e}")
+        send_progress(f"Failed to create release: {e}")
         raise
 
 def handle_command(cmd: dict):

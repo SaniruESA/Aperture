@@ -370,4 +370,5 @@ log.txt
 /local_repo
 .env
 /dist
-/build
+/buildwebsite/dist/
+.DS_Store

@@ -123,25 +123,6 @@
         border: 5px solid #4b2d4b;
       }
 
-      .links-box {
-        width: 70%;
-        margin: 12px auto 0 auto;
-        padding: 12px 14px;
-        background: #121416;
-        color: #dcdcdc;
-        font-size: 14px;
-        box-shadow: 0 6px 16px rgba(0,0,0,0.2);
-        display: none;
-        border: 5px solid #4b2d4b;
-      }
-
-      .links-box a {
-        color: #9fbef2;
-        display: block;
-        margin: 6px 0;
-        word-break: break-all;
-      }
-
       .auth-code {
         width: 70%;
         margin: 12px auto 0 auto;
@@ -166,9 +147,8 @@
     </div>
     <div class="side-scroll">
       <div class="info-box" id="infoBox" role="status" aria-live="polite">
-        Please click the link below to authenticate your HuggingFace / GitHub accounts (there will be two links that appear, one at a time). Your GitHub verification code has been copied to your clipboard. The links may take a little while to appear.
+        Please fill in the information below for the software you want to make accessible, and then click "Run".
       </div>
-      <div id="linksBox" class="info-box" aria-live="polite"></div>
       <div id="authCodeBox" class="auth-code" aria-live="polite"></div>
         <div class="enter-box">
           <input type="text" id="githublink" class="github-link" placeholder="owner/repo or https://github.com/owner/repo">

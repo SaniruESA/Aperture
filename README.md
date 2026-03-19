@@ -11,4 +11,4 @@ Navigate to the "download" folder (https://github.com/nicfanst/Aperture/tree/mas
 The following is a flowchart reflecting Aperture's design.
 <img width="1105" height="1110" alt="Screenshot 2026-03-18 190538" src="https://github.com/user-attachments/assets/b6d0be9e-a0e4-4190-8c2a-f7496502c459" />
 
-The Aperture Library is what implements each important accessibility feature. It is compiled into an executable for use in any other software repository. The Code Editing is the series of Python files responsible for editing (via HuggingFace) and pull-requesting accessibility changes to a software repository. We use Electron for a user interface, so you can input a GitHub repository link to make accessible using Aperture.
+The Aperture Library is what implements each important accessibility feature. It is compiled into an executable for use in any other software repository. The Code Editing is the series of Python files responsible for editing (via HuggingFace) and releasing accessibility changes to a software repository. We use Electron for a user interface, so you can input a GitHub repository link to make accessible using Aperture.

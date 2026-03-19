@@ -11,6 +11,7 @@ const fs = require('fs')
 let pythonProcess = null
 let pythonStarting = false
 let mainWindow = null
+let lastDoneLink = null
 function startPythonProcess() {
   if (pythonProcess && !pythonProcess.killed && pythonProcess.exitCode === null) return
   pythonStarting = true
@@ -19,7 +20,7 @@ function startPythonProcess() {
   if (app.isPackaged) {
     const resources = process.resourcesPath
     if (process.platform === 'darwin') {
-      cmd = path.join(resources, 'python', 'Aperture')
+      cmd = path.join(resources, 'python', 'mac', 'Aperture')
     } else if (process.platform === 'win32') {
       cmd = path.join(resources, 'python', 'Aperture.exe')
     } else {
@@ -63,7 +64,12 @@ function startPythonProcess() {
         const obj = JSON.parse(line)
         // open external URLs (OAuth)
         if (obj.action === 'open_url' && obj.url) {
+          // open externally and forward to renderer (and remember for late requests)
           shell.openExternal(obj.url)
+          lastDoneLink = obj.url
+          if (mainWindow && !mainWindow.isDestroyed()) {
+            mainWindow.webContents.send('done-link', obj.url)
+          }
           return
         }
         // progress messages forwarded to renderer
@@ -93,7 +99,7 @@ function startPythonProcess() {
           }
         }
       } catch (e) {
-        // not JSON — ignore or forward raw lines as progress
+        // not JSON - ignore or forward raw lines as progress
         if (mainWindow && !mainWindow.isDestroyed()) {
           mainWindow.webContents.send('progress', line)
         }
@@ -194,6 +200,11 @@ function createWindow() {
 app.whenReady().then(() => {
   startPythonProcess()
   createWindow()
+
+  // Provide renderer a way to request the last done link (if it missed the event)
+  ipcMain.handle('get-last-done-link', async () => {
+    return lastDoneLink
+  })
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
