@@ -366,8 +366,6 @@ def tick(server: Server, conn: socket.socket):
             # End
             while not audio_transcription.process.poll():
                 audio_transcription.process.terminate()
-                
-            WINDOW.close()
             quit()
 
         # TTS Generation

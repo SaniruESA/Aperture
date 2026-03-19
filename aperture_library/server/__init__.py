@@ -216,7 +216,6 @@ class Server:
             while not audio_transcription.process.poll():
                 audio_transcription.process.terminate()
                 
-            server_ticker.WINDOW.close()
             os._exit(0)
 
     def __str__(self) -> str:

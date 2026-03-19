@@ -50,6 +50,10 @@ class Window(pyglet.window.Window):
     def on_draw(self):
 
         self.render()
+        
+        if not server.MAIN_SERVER.is_alive:
+            self.close()
+            quit()
 
     def draw(self):
 
@@ -131,6 +135,7 @@ class Window(pyglet.window.Window):
 
         quit()
 
+from .. import server
 
 is_button_highlighted: bool = False
 button_highlight_coords: list = [0, 0, 0, 0]
