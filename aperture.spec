@@ -1,38 +1,36 @@
 # -*- mode: python ; coding: utf-8 -*-
 from PyInstaller.utils.hooks import collect_all
 
-datas = [('code_modification')]
+datas = [
+    ('code_modification', 'code_modification'),
+    ('aperture_library', 'aperture_library'),
+]
 binaries = []
-hiddenimports = ['github', 'github.Auth', 'github.GithubException', 'git', 'gitdb', 'gitdb.db', 'smmap', 'requests', 'urllib3', 'certifi', 'charset_normalizer', 'idna', 'pyperclip', 'huggingface_hub', 'edge_tts']
-tmp_ret = collect_all('github')
-datas += tmp_ret[0]; binaries += tmp_ret[1]; hiddenimports += tmp_ret[2]
-tmp_ret = collect_all('git')
-datas += tmp_ret[0]; binaries += tmp_ret[1]; hiddenimports += tmp_ret[2]
-tmp_ret = collect_all('gitdb')
-datas += tmp_ret[0]; binaries += tmp_ret[1]; hiddenimports += tmp_ret[2]
-tmp_ret = collect_all('smmap')
-datas += tmp_ret[0]; binaries += tmp_ret[1]; hiddenimports += tmp_ret[2]
-tmp_ret = collect_all('requests')
-datas += tmp_ret[0]; binaries += tmp_ret[1]; hiddenimports += tmp_ret[2]
-tmp_ret = collect_all('urllib3')
-datas += tmp_ret[0]; binaries += tmp_ret[1]; hiddenimports += tmp_ret[2]
-tmp_ret = collect_all('certifi')
-datas += tmp_ret[0]; binaries += tmp_ret[1]; hiddenimports += tmp_ret[2]
-tmp_ret = collect_all('charset_normalizer')
-datas += tmp_ret[0]; binaries += tmp_ret[1]; hiddenimports += tmp_ret[2]
-tmp_ret = collect_all('idna')
-datas += tmp_ret[0]; binaries += tmp_ret[1]; hiddenimports += tmp_ret[2]
-tmp_ret = collect_all('pyperclip')
-datas += tmp_ret[0]; binaries += tmp_ret[1]; hiddenimports += tmp_ret[2]
-tmp_ret = collect_all('huggingface_hub')
-datas += tmp_ret[0]; binaries += tmp_ret[1]; hiddenimports += tmp_ret[2]
-tmp_ret = collect_all('edge_tts')
-datas += tmp_ret[0]; binaries += tmp_ret[1]; hiddenimports += tmp_ret[2]
+hiddenimports = [
+    'github', 'github.Auth', 'github.GithubException',
+    'git', 'gitdb', 'gitdb.db', 'smmap',
+    'requests', 'urllib3', 'certifi', 'charset_normalizer', 'idna',
+    'pyperclip', 'huggingface_hub', 'edge_tts',
+    'vosk', 'pyaudio', 'keyboard', 'pyautogui', 'pyglet', 'pygame',
+]
+
+collect_packages = [
+    'github', 'git', 'gitdb', 'smmap',
+    'requests', 'urllib3', 'certifi', 'charset_normalizer', 'idna',
+    'pyperclip', 'huggingface_hub', 'edge_tts',
+    'vosk', 'pyaudio', 'keyboard', 'pyautogui', 'pyglet', 'pygame',
+]
+for pkg in collect_packages:
+    try:
+        tmp_ret = collect_all(pkg)
+        datas += tmp_ret[0]; binaries += tmp_ret[1]; hiddenimports += tmp_ret[2]
+    except Exception:
+        pass
 
 
 a = Analysis(
-    ['code_modification\\main.py'],
-    pathex=['C:\\Users\\videe\\Desktop\\Code\\tsa\\Aperture\\.venv\\Lib\\site-packages'],
+    ['code_modification/main.py'],
+    pathex=[],
     binaries=binaries,
     datas=datas,
     hiddenimports=hiddenimports,

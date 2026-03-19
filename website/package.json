@@ -8,6 +8,8 @@
   "main": "src/main.js",
   "scripts": {
     "start": "electron .",
+    "build": "electron-builder --mac",
+    "build:win": "electron-builder --win",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "devDependencies": {
@@ -15,6 +17,17 @@
     "electron-builder": "^24.6.0"
   },
   "build": {
+    "appId": "com.aperture.app",
+    "productName": "Aperture",
+    "mac": {
+      "target": "dmg",
+      "category": "public.app-category.developer-tools"
+    },
+    "files": [
+      "src/**/*",
+      "pages/**/*",
+      "index.html"
+    ],
     "extraResources": [
       {
         "from": "build/python",
@@ -24,22 +37,15 @@
         ]
       },
       {
-        "from": "..\\code_modification",
+        "from": "../code_modification",
         "to": "code_modification",
         "filter": [
           "**/*"
         ]
       },
       {
-        "from": "..\\lib_build",
+        "from": "lib_build/macOS",
         "to": "lib_build",
-        "filter": [
-          "**/*"
-        ]
-      },
-      {
-        "from": "..\\build\\python_deps",
-        "to": "py_deps",
         "filter": [
           "**/*"
         ]
