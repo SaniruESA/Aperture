@@ -20,7 +20,7 @@ function startPythonProcess() {
   if (app.isPackaged) {
     const resources = process.resourcesPath
     if (process.platform === 'darwin') {
-      cmd = path.join(resources, 'python', 'Aperture')
+      cmd = path.join(resources, 'python', 'mac', 'Aperture')
     } else if (process.platform === 'win32') {
       cmd = path.join(resources, 'python', 'Aperture.exe')
     } else {

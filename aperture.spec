@@ -4,6 +4,7 @@ from PyInstaller.utils.hooks import collect_all
 datas = [
     ('code_modification', 'code_modification'),
     ('aperture_library', 'aperture_library'),
+    ('supported.json', '.'),
 ]
 binaries = []
 hiddenimports = [
