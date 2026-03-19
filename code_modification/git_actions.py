@@ -8,11 +8,24 @@ import git as gitlib
 import os
 import time
 import requests
+import subprocess
+try:
+    from requests.adapters import HTTPAdapter
+except Exception:
+    HTTPAdapter = None
+
+try:
+    from urllib3.util.retry import Retry
+except Exception:
+    Retry = None
 import stat
 import webbrowser
 import json
 import pyperclip
 import shutil
+import traceback
+import sys
+import tempfile
 
 # Aperture project ID
 CLIENT_ID = "Ov23liV0UHREdct0ILC3"
@@ -39,12 +52,11 @@ def authenticate_with_github():
     print("The GitHub authentication page will open shortly.")
     print(f"Your code ({user_code}) has already been copied to your clipboard, you just need to paste it.")
 
-    # Ask host (Electron) to open the Github authentication page
     try:
-        # Print structured message that main process can parse
+        # Print JSON structured message for Electron to receive
         print(json.dumps({"action": "open_url", "url": res["verification_uri"]}), flush=True)
     except Exception:
-        # Fallback: try to open directly
+        # try to open directly as a fallback
         webbrowser.open(res["verification_uri"]) 
 
     device_code = res["device_code"]
@@ -196,6 +208,7 @@ def stage_and_commit(repo_dir, commit_message="Added all accessibility features"
 
 def create_pull_request(repo_name, branch_name, token, base_branch="main", repo_dir="local_repo"):
     """
+    TODO: CHANGE HIS
     Creates a pull request on GitHub from the new branch created by stage_and_commit to the base branch (default: "main"). It includes retries for handling GitHub server errors.
 
     Arguments:
@@ -205,48 +218,89 @@ def create_pull_request(repo_name, branch_name, token, base_branch="main", repo_
         base_branch: The name of the base branch to merge into (default: "main")
         repo_dir: The local directory of the git repository (default: "local_repo")
     """
-    # Get info about user and repo
+    # Authenticate to GitHub and get repository
     auth = Auth.Token(token)
     g = Github(auth=auth)
-    test = g.get_user()
-    repo = test.get_repo(repo_name)
+    repo = g.get_repo(repo_name)
 
-    # Stage/commit changes
-    result = stage_and_commit(repo_dir)
+    # Zip the local repo directory and upload as a release asset
+    try:
+        timestamp = int(time.time())
+        base_archive = os.path.join(tempfile.gettempdir(), f"{repo_name.replace('/', '_')}_{timestamp}")
+        zip_path = shutil.make_archive(base_archive, 'zip', repo_dir)
 
-    # Cancel PR if no commited changes
-    if not result:
-        print("No commited changes; pull request canceled.") # TODO: info()
-        return
+        tag = f"auto-upload-{timestamp}"
+        release = repo.create_git_release(tag=tag, name=f"Auto upload {timestamp}", message="Automated upload of modified repo", draft=True)
+        
+        # Robust upload using requests with retries and streaming
+        def _upload_asset_via_requests(file_path, label):
+            upload_template = release.raw_data.get("upload_url")
+            if not upload_template:
+                raise RuntimeError("release upload_url not found")
+            upload_url = upload_template.split("{", 1)[0]
+            params = {"name": os.path.basename(file_path), "label": label}
 
-    # Allow time for GitHub to process branch addition
-    time.sleep(10)
+            session = requests.Session()
+            if Retry is not None and HTTPAdapter is not None:
+                try:
+                    retries = Retry(total=5, backoff_factor=1, status_forcelist=(500, 502, 503, 504))
+                    adapter = HTTPAdapter(max_retries=retries)
+                    session.mount("https://", adapter)
+                    session.mount("http://", adapter)
+                except Exception:
+                    pass
 
-    # Retry PRs in case GitHub didn't process branch yet
-    for i in range(3):
+            headers = {
+                "Authorization": f"token {token}",
+                "Content-Type": "application/zip",
+                "Accept": "application/vnd.github.v3+json",
+            }
+
+            with open(file_path, "rb") as fh:
+                try:
+                    resp = session.post(upload_url, params=params, data=fh, headers=headers, timeout=(10, 1200))
+                    resp.raise_for_status()
+                    return resp.json()
+                finally:
+                    session.close()
+
+        failed = False
         try:
-            # Create PR
-            pr = repo.create_pull(
-                title="Added all accessibility features",
-                body="Automated PR to improve accessibility for the blind/deaf.",
-                head=branch_name,
-                base=base_branch
-            )
-            print(f"Pull request created: {pr.html_url}")
             try:
-                print(json.dumps({"action": "open_url", "url": pr.html_url}), flush=True)
+                _upload_asset_via_requests(zip_path, os.path.basename(zip_path))
+                print(f"Release asset uploaded: {release.html_url}")
+                # print(json.dumps({"action": "open_url", "url": release.html_url}), flush=True)
             except Exception:
-                webbrowser.open(pr.html_url)
-            return
+                traceback.print_exc(file=sys.stderr)
+                failed = True
 
-        # Exponential retry if server side error
-        except GithubException as error:
-            if error.status >= 500:
-                print(f"GitHub 500 error, retrying in {i*2} seconds.")
-                time.sleep(i)
+            # If requests upload failed, try gh CLI as a fallback for large files
+            if failed:
+                if shutil.which("gh"):
+                    try:
+                        gh_cmd = ["gh", "release", "create", tag, zip_path, "--repo", repo_name, "--title", f"Auto upload {timestamp}", "--notes", "Automated upload", "--draft"]
+                        proc = subprocess.run(gh_cmd, check=True, capture_output=True, text=True)
+                        out = (proc.stdout or proc.stderr).strip()
+                        if out:
+                            print(out)
+                        else:
+                            print("gh release create succeeded")
+                    except Exception:
+                        traceback.print_exc(file=sys.stderr)
+                else:
+                    print("gh CLI not found; fallback unavailable")
+        except Exception:
+            traceback.print_exc(file=sys.stderr)
 
-            # Raise error if it wasn't 500
-            else:
-                raise
-    raise Exception("GitHub failed too many times.")
+        # Clean up local zip
+        try:
+            os.remove(zip_path)
+        except Exception:
+            pass
+
+        return
+    except Exception:
+        traceback.print_exc(file=sys.stderr)
+        raise
+
 

@@ -36,6 +36,8 @@ def prompt_code(code:str, prompt:str, return_code:bool=True):
             The raw code
     """
 
+    return code
+
     show_code_prompt = ""
     if return_code:
         show_code_prompt = "Return a version of the initially given code with the requested functionality added. DO NOT leave out any code in the output. And be conservative; prefer false negatives to false positives."

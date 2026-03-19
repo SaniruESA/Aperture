@@ -1,3 +1,13 @@
+"""
+Predefined type_a and type_b extensions for the most common frameworks
+to increase code modification efficiency
+type_a are files where UI is defined
+type_b are files where code functionality is defined
+
+(created in Python since it's better for relative imports in the
+executable than JSON)
+"""
+
 supported = {
     "frameworks": {
         "Flutter": {
