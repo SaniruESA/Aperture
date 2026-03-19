@@ -39,6 +39,9 @@ public class AudioCapturer : IDisposable
 
     private static readonly Task _consumerTask = Task.Run(ProcessQueueAsync);
 
+    /// <summary>
+    /// Processes queued audio streams and transcribes them asynchronously.
+    /// </summary>
     private static async Task ProcessQueueAsync()
     {
         await foreach (var ms in _audioQueue.Reader.ReadAllAsync().ConfigureAwait(false))
@@ -59,6 +62,9 @@ public class AudioCapturer : IDisposable
         }
     }
 
+    /// <summary>
+    /// Captures audio from the default loopback device, resamples it, and queues it for transcription.
+    /// </summary>
     [MTAThread]
     static async void Capturer()
     {
@@ -181,10 +187,12 @@ public class AudioCapturer : IDisposable
         }
     }
 
+    /// <summary>
+    /// Starts the audio capture process in a background task.
+    /// </summary>
     [MTAThread]
     public static void StartCapturer()
     {
-        alive = true;
         
         _ = Task.Run(() => Capturer());
         // keep thread alive
@@ -195,6 +203,9 @@ public class AudioCapturer : IDisposable
         }
     }
 
+    /// <summary>
+    /// Disposes the AudioCapturer instance.
+    /// </summary>
     public void Dispose() { }
 
     // Rolling, non-destructive PCM byte buffer with snapshot capability
@@ -205,6 +216,9 @@ public class AudioCapturer : IDisposable
         private int _size;
         private readonly object _lock = new();
 
+        /// <summary>
+        /// Initializes a new RollingPcmBuffer with the specified capacity.
+        /// </summary>
         public RollingPcmBuffer(int capacity)
         {
             if (capacity < 1) capacity = 1;
@@ -214,6 +228,9 @@ public class AudioCapturer : IDisposable
         public int BufferLength => _buffer.Length;
         public int BufferedBytes => _size;
 
+        /// <summary>
+        /// Adds audio samples to the rolling buffer, overwriting old data if the buffer is full.
+        /// </summary>
         public void AddSamples(byte[] src, int offset, int count)
         {
             if (count <= 0) return;
@@ -248,6 +265,9 @@ public class AudioCapturer : IDisposable
             }
         }
 
+        /// <summary>
+        /// Returns a snapshot of the current buffer contents in chronological order.
+        /// </summary>
         public byte[] Snapshot()
         {
             lock (_lock)

@@ -13,6 +13,9 @@ namespace Aperture
             WhisperManager.LoadModel(path);
             AudioCapturer.StartCapturer();
         }
+        /// <summary>
+        /// Entry point of the application.
+        /// </summary>
         [MTAThread]
         static void Main(string[] args)
         {

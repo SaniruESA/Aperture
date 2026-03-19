@@ -19,7 +19,9 @@ public class WhisperManager
     private static WhisperFactory? WF { get; set; }
     private static readonly SemaphoreSlim _whisperLock = new(1, 1); // To ensure single access to Whisper or something
 
-
+    /// <summary>
+    /// Loads a Whisper model from the specified path.
+    /// </summary>
     public static void LoadModel(string modelPath)
     {
         try
@@ -50,6 +52,9 @@ public class WhisperManager
     }
 
 
+    /// <summary>
+    /// Transcribes audio data from the provided stream using the loaded Whisper model.
+    /// </summary>
     public static async Task Transcribe(Stream audioData, CancellationToken ct = default)
     {
         if (WF == null)
@@ -113,9 +118,15 @@ public class WhisperManager
         }
     }
 
+    /// <summary>
+    /// Attempts to dequeue the next transcription from the queue.
+    /// </summary>
     public static bool TryDequeueTranscription(out Transcription transcription)
         => TranscriptionQueue.TryDequeue(out transcription);
 
+    /// <summary>
+    /// Evaluates the confidence score of a transcription text based on length and punctuation.
+    /// </summary>
     static float EvaluateConfidence(string text)
     {
         // Simple heuristic: longer, punctuated lines -> higher confidence
@@ -143,6 +154,9 @@ public class WhisperManager
         private float _stability = 0f; // grows as text stabilizes
         private string _lastText = string.Empty;
 
+        /// <summary>
+        /// Adds a segment of transcribed text and returns interim transcription updates.
+        /// </summary>
         public IEnumerable<Transcription> AddSegment(string text, TimeSpan start, TimeSpan end)
         {
             text ??= string.Empty;
@@ -227,6 +241,9 @@ public class WhisperManager
             }
         }
 
+        /// <summary>
+        /// Attempts to flush the current buffer and return a final transcription.
+        /// </summary>
         public bool TryFlush(out Transcription transcription)
         {
             if (_sb.Length == 0 || !_hasAny)
@@ -257,6 +274,9 @@ public class WhisperManager
             return true;
         }
 
+        /// <summary>
+        /// Checks if the buffer ends with sentence-ending punctuation.
+        /// </summary>
         private static bool EndsWithSentencePunctuation(StringBuilder sb)
         {
             if (sb.Length == 0) return false;
@@ -264,6 +284,9 @@ public class WhisperManager
             return c == '.' || c == '!' || c == '?';
         }
 
+        /// <summary>
+        /// Calculates the similarity ratio between two text strings using longest common subsequence.
+        /// </summary>
         private static float TextDeltaRatio(string a, string b)
         {
             if (string.IsNullOrEmpty(a)) return 1f;
@@ -273,6 +296,9 @@ public class WhisperManager
             return 1f - (float)common / Math.Max(1, maxLen);
         }
 
+        /// <summary>
+        /// Computes the length of the longest common subsequence between two strings.
+        /// </summary>
         private static int LongestCommonSubsequenceLength(string a, string b)
         {
             int n = a.Length, m = b.Length;

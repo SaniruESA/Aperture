@@ -9,6 +9,9 @@ public struct Transcription
     public TimeSpan EndTime { get; set; }
     public bool IsFinal { get; set; }
 
+    /// <summary>
+    /// Initializes a new Transcription instance with the provided text, confidence, and timing information.
+    /// </summary>
     public Transcription(string text, float confidence, TimeSpan startTime, TimeSpan endTime)
     {
         Id = Guid.NewGuid();
