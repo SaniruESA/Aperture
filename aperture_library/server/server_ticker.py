@@ -17,6 +17,7 @@ from .. import voice_commands
 from .. import audio_transcription
 from .. import live_ui
 import socket
+import keyboard
 
 BLANK_PACKET_MAXIMUM: int = (
     100  # Number of blank packets received before server will automatically shut off
@@ -358,6 +359,15 @@ def tick(server: Server, conn: socket.socket):
 
             # Close
             server.is_alive = False
+
+            # Stop keyboard
+            keyboard.clear_all_hotkeys()
+
+            # End
+            while not audio_transcription.process.poll():
+                audio_transcription.process.terminate()
+                
+            WINDOW.close()
             quit()
 
         # TTS Generation

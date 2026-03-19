@@ -10,6 +10,7 @@ import subprocess
 import platform
 import os
 import threading
+from . import server
 from . import ui
 
 # Determine the executable to use based on user os
@@ -37,7 +38,7 @@ def start_process():
 
 def show_subtitles():
 
-    while True:
+    while server.MAIN_SERVER.is_alive:
         # Reading 1 chunk at a time
         subtitle_chunk = ""
 

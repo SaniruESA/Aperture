@@ -11,6 +11,14 @@ from .. import settings
 CLIENT: server.Client = None
 
 
+def client_exists() -> bool:
+    """
+    Gets is client currently exists
+    """
+
+    return CLIENT is not None
+
+
 def generate_client(port: int = 8080, ip=server.DEFAULT_COMPUTER_IP) -> server.Client:
     """
     Generates a client for use
