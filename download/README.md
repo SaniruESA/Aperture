@@ -5,4 +5,4 @@ Current supported options include Mac and Windows.
 
 Windows: Aperture Setup 1.0.0
 
-Mac: Aperture-1.0.0-arm64
+Mac: Aperture-1.0.0-arm64 (SILICON ONLY)
