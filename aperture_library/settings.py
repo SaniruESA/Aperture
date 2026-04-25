@@ -31,6 +31,7 @@ POPUP_DEFAULT_COLOR: RGB = (
     83,
     76,
 )  # Default color for popups to appear as (Default: (228,83,76))
+SUB_ENABLED:bool = True # Toggles subtitles on screen
 
 # TTS
 TTS_VOICE: TTS_Voice = (

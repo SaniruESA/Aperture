@@ -9,6 +9,7 @@ Library, like visual alerts/popups.
 import pyglet
 from typing import Literal
 from . import popup
+from .. import settings
 import time
 
 
@@ -33,6 +34,7 @@ class Window(pyglet.window.Window):
             height=height,
             style=Window.WINDOW_STYLE_OVERLAY,
             caption="Aperture Overlay",
+            resizable=True
         )
 
         # Set window position
@@ -62,7 +64,7 @@ class Window(pyglet.window.Window):
         # Update window
         if update_window:
 
-            x, y, w, h = window_stats
+            x, y, w, h = [int(x) for x in window_stats]
 
             self.set_location(x, y)
             self.set_size(w, h)
@@ -78,19 +80,21 @@ class Window(pyglet.window.Window):
         # Draw buttons if highlighted
         if is_button_highlighted:
 
-            button_highlight = pyglet.shapes.Rectangle(
+            button_highlight = pyglet.shapes.BorderedRectangle(
                 button_highlight_coords[0],
                 self.height - button_highlight_coords[1] - button_highlight_coords[3],
                 button_highlight_coords[2],
                 button_highlight_coords[3],
-                (255, 255, 255, 150),
+                3,
+                (255, 255, 255, 75),
+                (0,0,0)
             )
 
             button_highlight.draw()
 
         # Draw captions
         caption_sub = CAPTION_SUB.strip()
-        if caption_sub != "[BLANK_AUDIO]":
+        if caption_sub != "[BLANK_AUDIO]" and settings.SUB_ENABLED:
             wind_w = window_stats[2]
             subtitle_text = pyglet.text.Label(
                 caption_sub,

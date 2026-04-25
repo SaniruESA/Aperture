@@ -144,6 +144,9 @@ class Server:
 
         # Clear previous tts files
         self.tts_queue.wipe_dir()
+        
+        # Generate new 
+        self.tts_queue.generate("This program is using Aperture")
 
     def accept(self) -> None:
         """
@@ -310,7 +313,8 @@ class Client:
                 __name__,
             )
 
-            os._exit(0)
+            # This only raises an exception instead of closing to ensure that the client may attempt to connect again
+            raise OSError("Server not yet started to connect to")
 
         # Print output message
         info(f"Client created at ip: {ip} and port: {port}", __name__)
@@ -349,7 +353,7 @@ class Client:
         # Dump and send
         self.send(json.dumps(data))
 
-    def send_and_recv(self, data: dict) -> str:
+    def send_and_recv(self, data: dict) -> bytes:
         """
         Sends json to server with automatic length header and waits for server response
 

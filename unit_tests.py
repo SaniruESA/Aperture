@@ -18,6 +18,7 @@ SERVER: server.Server = None
 TOTAL_TESTS = 0
 TOTAL_PASS = 0
 TESTS = []
+TOTAL_TIME = 0
 
 
 def test_stats():
@@ -30,12 +31,12 @@ def test_stats():
     for test in TESTS:
 
         print(
-            f"{("\x1b[32m" if test["pass"] else "\x1b[31m")}{test["name"]}: {("Passed" if test["pass"] else "Fail")}\x1b[0m"
+            f"{("\x1b[32m" if test["pass"] else "\x1b[31m")}{test["name"]}: {("Passed" if test["pass"] else "Fail")} ({test["time"]} ms)\x1b[0m"
         )
 
     print("------------------")
     print(
-        f"{"\x1b[33m" if TOTAL_PASS < TOTAL_TESTS else "\x1b[32m"}({TOTAL_PASS}/{TOTAL_TESTS}) Passed"
+        f"{"\x1b[33m" if TOTAL_PASS < TOTAL_TESTS else "\x1b[32m"}({TOTAL_PASS}/{TOTAL_TESTS}) Passed ({TOTAL_TIME} ms)"
     )
 
 
@@ -48,17 +49,21 @@ def test(func):
         """
         A single test
         """
-        global TOTAL_TESTS, TOTAL_PASS, TESTS
+        global TOTAL_TESTS, TOTAL_PASS, TESTS, TOTAL_TIME
 
         # Verbose test logging
+        start = time.time()
         debug(f"Starting test: {func.__name__}", __name__)
         TOTAL_TESTS += 1
-        test_stats = {"name": func.__name__, "pass": False}
+        test_stats = {"name": func.__name__, "pass": False, "time":-1}
 
         try:
-            debug(f"\x1b[32mTest ({func.__name__}) passed: {func()}", __name__)
+            debug(f"\x1b[32mTest ({func.__name__}) passed: {func()} ({(time.time()-start)*1000} ms)", __name__)
+            end = time.time()
             test_stats["pass"] = True
+            test_stats["time"] = (end-start) * 1000
             TOTAL_PASS += 1
+            TOTAL_TIME += test_stats["time"]
         except AssertionError as e:
             error(f"Test failed due to assertion: {e}", __name__)
         except Exception as e:
@@ -68,6 +73,15 @@ def test(func):
 
     return test_func
 
+@test
+def test_speed():
+    """
+    Test server speed
+    """
+    
+    response = client.help()
+    
+    debug(response, __name__)
 
 @test
 def test_1_button():
@@ -196,6 +210,7 @@ def test_runner():
         time.sleep(1)
 
     # Run tests
+    test_speed()
     test_1_button()
     test_2_button()
     test_3_clear()

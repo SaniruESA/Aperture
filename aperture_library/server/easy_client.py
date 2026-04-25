@@ -66,7 +66,7 @@ def generate_tts(
     )
 
 
-def exit() -> str:
+def exit() -> bytes:
     """
     Immediately quits the server
     """
@@ -77,7 +77,7 @@ def exit() -> str:
     return CLIENT.send_and_recv({"type": "exit"})
 
 
-def help(func: str = "") -> str:
+def help(func: str = "") -> bytes:
     """
     Gets help on all server functions or a specific one (will return help data)
 
@@ -92,7 +92,7 @@ def help(func: str = "") -> str:
     return CLIENT.send_and_recv({"type": "help", "content": func})
 
 
-def add_button(position: list[int, int, int, int], name: str) -> str:
+def add_button(position: list[int, int, int, int], name: str) -> bytes:
     """
     Generates a button on the server side for both selection and hover tts
 
@@ -110,7 +110,7 @@ def add_button(position: list[int, int, int, int], name: str) -> str:
     )
 
 
-def clear_button() -> str:
+def clear_button() -> bytes:
     """
     Clears all and ui elements on the screen
     """
@@ -120,7 +120,7 @@ def clear_button() -> str:
     return CLIENT.send_and_recv({"type": "clear_button"})
 
 
-def update_window(position: list[int, int, int, int]) -> str:
+def update_window(position: list[int, int, int, int]) -> bytes:
     """
     Updates the position of the window and button placement
     It is ideal to do this on window generation and every window update in order to keep objects correctly placed
@@ -142,7 +142,7 @@ def add_popup(
     background_color: tuple[int, int, int] = settings.POPUP_DEFAULT_COLOR,
     text_color: tuple[int, int, int] = (0, 0, 0),
     position: tuple[int, int] = None,
-) -> str:
+) -> bytes:
     """
     Adds a popup to the screen with tts as well
 
@@ -168,3 +168,38 @@ def add_popup(
             "position": position,
         }
     )
+
+
+def toggle_subtitles(state: bool) -> bytes:
+    """
+    Sets the subtitles to enabled / disabled
+
+    Arguments:
+        state:
+            The state of the subtitles true = enabled, false = disabled
+    """
+
+    return CLIENT.send_and_recv({"type": "toggle_subtitles", "content": state})
+
+
+def list_voices() -> list:
+    """
+    Lists all TTS voices available
+    """
+
+    data = CLIENT.send_and_recv({"type": "list_voices"})
+
+    return json.loads(data.decode("utf-8"))["content"]
+
+
+def set_default_voice(voice: str) -> bytes:
+    """
+    Sets the default TTS voice
+    Check the list_voices function for a list of voices
+
+    Arguments:
+        voice:
+            The voice name
+    """
+
+    return CLIENT.send_and_recv({"type": "set_default_voice","content":voice})

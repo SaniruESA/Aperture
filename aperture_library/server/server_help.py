@@ -16,13 +16,6 @@ JSON_DATA_SIZE
 The server will almost always send back the same type that was given to it, unless there is a critical error
 
 # - Specific Functions - #
-Verify
-type: verify
-content: solved verification code code
-
-The server will always send the unsolved verification code to the client as soon as it connects
-If you are using the python library, simply use client.verify() immediately after connecting
-If you are not using the python library, send back a packet with the content of int(((verify_code / 2) * 3) ** 2)
 
 Help
 type: help
@@ -31,12 +24,14 @@ content: function to get help on
 After verification, send a packet for help with the function name in order to get help on that specific function
 
 # - Functions List - #
-verify - Verify client
 help - Help menu
 exit - Shutdown server
 generate_tts - Send a generation request to queue
 add_button - Adds a button for tab navigation
 update_window - Updates window position
+toggle_subtitle - Toggles subtitles
+set_default_voice - Sets default TTS voice
+list_voices - Lists all TTS voices
 """
 
 # Help menu for help
@@ -113,6 +108,30 @@ Adds a popup to the screen with tts as well
 The rectangle around it is based on the length of the text, \\n is supported
 """
 
+HELP_SUBTITLE_TOGGLE = """
+Toggle Subtitles
+type: toggle_subtitles
+content: boolean (subtitle state)
+
+Toggles the state of the subtitles
+True values enable subtitles, False values disable them
+"""
+
+HELP_SET_DEFAULT_VOICE = """
+Set Default TTS Voice
+type: set_default_voice
+content: The voice name
+
+Sets the default voice for TTS
+Check the list_voices command for a list of voices
+"""
+
+HELP_LIST_VOICES = """
+List Voices
+type: list_voices 
+
+Lists all voices
+"""
 
 def format_json(item: str):
     """
@@ -136,6 +155,9 @@ help_decrypt = {
     "clear_button": HELP_CLEAR_BUTTON,
     "update_window": HELP_UPDATE_WINDOW,
     "add_popup": HELP_ADD_POPUP,
+    "toggle_subtitle": HELP_SUBTITLE_TOGGLE,
+    "list_voices": HELP_LIST_VOICES,
+    "set_default_voice": HELP_SET_DEFAULT_VOICE
 }
 
 

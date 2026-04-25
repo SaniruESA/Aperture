@@ -15,9 +15,6 @@ import time
 from .logger.basic_logs import *
 from . import settings
 
-# Get settings
-TTS_DEFAULT_VOICE = settings.TTS_VOICE
-
 # Initialize pygame
 pygame.init()
 
@@ -53,7 +50,7 @@ class Queue:
     def _generate(
         self,
         text: str,
-        voice: str = TTS_DEFAULT_VOICE,
+        voice: str = settings.TTS_VOICE,
         volume: int = 0,
         rate: int = 0,
         pitch: int = 0,
@@ -90,7 +87,7 @@ class Queue:
     def generate(
         self,
         text: str,
-        voice: str = TTS_DEFAULT_VOICE,
+        voice: str | None = None,
         volume: int = 0,
         rate: int = 0,
         pitch: int = 0,
@@ -118,7 +115,11 @@ class Queue:
             timeout:
                 How long until the generate request should be canceled (Seconds)
         """
-
+        
+        if voice is None:
+            
+            voice = settings.TTS_VOICE
+        
         # Get the generate queue
         queue = self.generate_queue
 
@@ -450,7 +451,7 @@ class Queue:
 async def generate(
     queue: Queue,
     text: str,
-    voice: str = TTS_DEFAULT_VOICE,
+    voice: str = settings.TTS_VOICE,
     volume: int = 0,
     rate: int = 0,
     pitch: int = 0,
@@ -485,9 +486,15 @@ async def generate(
     pitch = ("+" if pitch >= 0 else "") + str(pitch) + "Hz"
 
     # Communicate to edge servers
-    communicated = edge_tts.Communicate(
-        text, voice, rate=rate, volume=volume, pitch=pitch
-    )
+    try:
+        communicated = edge_tts.Communicate(
+            text, voice, rate=rate, volume=volume, pitch=pitch
+        )
+
+        # Save the mp3 file
+        await communicated.save(path)
+    except Exception:
+        error("TTS message generation failed",__name__)
 
     # Save the mp3 file
     await communicated.save(path)
@@ -507,7 +514,7 @@ async def generate(
 
 async def generate_no_play(
     text: str,
-    voice: str = TTS_DEFAULT_VOICE,
+    voice: str | None = None,
     volume: int = 0,
     rate: int = 0,
     pitch: int = 0,
@@ -532,6 +539,10 @@ async def generate_no_play(
         path:
             The location to store the file
     """
+    
+    if voice is None:
+        
+        voice = settings.TTS_VOICE
 
     # Format parameters
     rate = ("+" if rate >= 0 else "") + str(rate) + "%"
@@ -539,12 +550,15 @@ async def generate_no_play(
     pitch = ("+" if pitch >= 0 else "") + str(pitch) + "Hz"
 
     # Communicate to edge servers
-    communicated = edge_tts.Communicate(
-        text, voice, rate=rate, volume=volume, pitch=pitch
-    )
+    try:
+        communicated = edge_tts.Communicate(
+            text, voice, rate=rate, volume=volume, pitch=pitch
+        )
 
-    # Save the mp3 file
-    await communicated.save(path)
+        # Save the mp3 file
+        await communicated.save(path)
+    except Exception:
+        error("TTS message generation failed",__name__)
 
     # Log that generation was completed
     info(f"Completed tts message generation at: {path} with content: {text}", __name__)

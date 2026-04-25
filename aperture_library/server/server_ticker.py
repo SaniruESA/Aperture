@@ -18,6 +18,23 @@ from .. import audio_transcription
 from .. import live_ui
 import socket
 import keyboard
+import edge_tts
+import time
+import os
+
+VOICES = []
+async def get_VOICES():
+    global VOICES
+    
+    try:
+        voices = [x["ShortName"] for x in await edge_tts.list_voices()]
+    except Exception:
+        voices = []
+    
+    VOICES = voices
+
+# Get voices
+asyncio.run(get_VOICES())
 
 BLANK_PACKET_MAXIMUM: int = (
     100  # Number of blank packets received before server will automatically shut off
@@ -44,7 +61,7 @@ def queue_generate_tts(server: Server, recv_json: dict, conn: socket.socket):
         "pitch": 0,
         "volume": 0,
         "rate": 0,
-        "voice": "en-US-EmmaMultilingualNeural",
+        "voice": settings.TTS_VOICE,
         "priority": 0,
     }
     for argument in default_arguments:
@@ -400,8 +417,8 @@ def tick(server: Server, conn: socket.socket):
             info(f"Updating window position x: {x} y: {y} w: {w} h: {h}", __name__)
 
             # Start update
-            ui.update_window = True
             ui.window_stats = [x, y, w, h]
+            ui.update_window = True
 
             # Send back
             server.send('{"type":"update_window","content":"Window updated"}', conn)
@@ -410,6 +427,48 @@ def tick(server: Server, conn: socket.socket):
         case "add_popup":
 
             add_popup(server, recv_json, conn)
+
+        # Toggle subtitles
+        case "toggle_subtitles":
+
+            settings.SUB_ENABLED = bool(recv_json["content"])
+
+            server.send(
+                '{"type":"toggle_subtitles","content":"Set subtitles to '
+                + str(recv_json["content"])
+                + ' "}',
+                conn,
+            )
+            
+        # Set default voice
+        case "set_default_voice":
+            
+            new_voice = recv_json["content"]
+            
+            if new_voice not in VOICES:
+                
+                server.send('{"type":"set_default_voice","content":"Invalid voice "'+new_voice+', check list_voices command for list"}',conn)
+                
+            else:
+                
+                settings.TTS_VOICE = new_voice
+
+                # Regenerate listening text
+                path = ".\\temp\\voice_assistant_listening.mp3"
+                while "voice_assistant_listening.mp3" in os.listdir(".\\temp\\"):
+                    try:
+                        os.remove(path)
+                    except:
+                        time.sleep(0.1)
+                threading.Thread(
+                    target=generate_button_tts, args=(settings.VOICE_ACTIVATION_CONFIRMATION, path)
+                ).start()
+                
+                server.send('{"type":"set_default_voice","content":"Voice set to "'+new_voice+'"}',conn)
+                
+        case "list_voices":
+            
+            server.send(json.dumps({"type":"list_voices","content":VOICES}),conn)
 
         case "show_transcription":
 
