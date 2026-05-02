@@ -32,6 +32,8 @@ update_window - Updates window position
 toggle_subtitle - Toggles subtitles
 set_default_voice - Sets default TTS voice
 list_voices - Lists all TTS voices
+list_buttons - Lists buttons
+remove_button - Removes a button
 """
 
 # Help menu for help
@@ -133,6 +135,21 @@ type: list_voices
 Lists all voices
 """
 
+HELP_LIST_BUTTONS = """
+List Buttons
+type: list_buttons
+
+Lists all buttons
+"""
+
+HELP_REMOVE_BUTTON = """
+Remove Button
+type: remove_button
+content: The button Aria Text
+
+Removes a single button
+"""
+
 def format_json(item: str):
     """
     Formats the item in a json packet
@@ -157,7 +174,9 @@ help_decrypt = {
     "add_popup": HELP_ADD_POPUP,
     "toggle_subtitle": HELP_SUBTITLE_TOGGLE,
     "list_voices": HELP_LIST_VOICES,
-    "set_default_voice": HELP_SET_DEFAULT_VOICE
+    "set_default_voice": HELP_SET_DEFAULT_VOICE,
+    "list_buttons": HELP_LIST_BUTTONS,
+    "remove_button": HELP_REMOVE_BUTTON
 }
 
 

@@ -182,7 +182,7 @@ def toggle_subtitles(state: bool) -> bytes:
     return CLIENT.send_and_recv({"type": "toggle_subtitles", "content": state})
 
 
-def list_voices() -> list:
+def list_voices() -> list[str]:
     """
     Lists all TTS voices available
     """
@@ -202,4 +202,28 @@ def set_default_voice(voice: str) -> bytes:
             The voice name
     """
 
+    info(f"Setting default voice '{voice}'",__name__)
+
     return CLIENT.send_and_recv({"type": "set_default_voice","content":voice})
+
+def list_buttons() -> list[dict]:
+    """
+    Lists all current buttons on the server
+    """
+    
+    data = CLIENT.send_and_recv({"type": "list_buttons"})
+
+    return json.loads(data.decode("utf-8"))["content"]
+
+def remove_button(ariaText:str) -> bytes:
+    """
+    Removes button with the given ariaText
+    
+    Argument:
+        ariaText:
+            The ariaText of the button
+    """
+    
+    info(f"Removing button '{ariaText}'",__name__)
+    
+    return CLIENT.send_and_recv({"type":"remove_button","content":ariaText})

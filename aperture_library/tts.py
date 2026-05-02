@@ -494,10 +494,9 @@ async def generate(
         # Save the mp3 file
         await communicated.save(path)
     except Exception:
-        error("TTS message generation failed",__name__)
-
-    # Save the mp3 file
-    await communicated.save(path)
+        error(f"TTS message generation failed at: {path} with content: {text}",__name__)
+        queue.generating = False
+        return
 
     # Allow another item to be queued
     queue.generating = False

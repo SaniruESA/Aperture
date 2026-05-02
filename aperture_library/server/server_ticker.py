@@ -469,6 +469,16 @@ def tick(server: Server, conn: socket.socket):
         case "list_voices":
             
             server.send(json.dumps({"type":"list_voices","content":VOICES}),conn)
+            
+        case "list_buttons":
+            
+            server.send(json.dumps({"type":"list_buttons","content":server.keyboardtab.getUIElements()["button"]}),conn)
+            
+        case "remove_button":
+            
+            msg = server.keyboardtab.removeUIButton(recv_json["content"])
+
+            server.send('{"type":"remove_button","content":"'+msg+'"}',conn)
 
         case "show_transcription":
 

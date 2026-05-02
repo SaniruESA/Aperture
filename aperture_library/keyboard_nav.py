@@ -61,6 +61,24 @@ class TabNavOrder:
     def getUIElements(self):
         """Get all registered UI elements"""
         return self.order
+    def removeUIButton(self,ariaText:str):
+        """Remove a button by its ariaText (this will delete the first occurrence)"""
+        buttons:list = self.order["button"]
+        
+        for button in buttons:
+            
+            if button["ariaText"] == ariaText:
+                
+                buttons.remove(button)
+                
+                info(f"Button '{ariaText}' removed",__name__)
+                
+                return f"Button '{ariaText}' removed"
+        
+        warn(f"Button '{ariaText}' could not be removed (not found)",__name__)
+        
+        return f"Button '{ariaText}' could not be removed (not found)"
+                
 
     def addUIElement(self, buttonRect: list, UIType: UITypeOptions, ariaText: str):
         """Add UI element to registry"""
