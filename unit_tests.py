@@ -7,6 +7,7 @@ import aperture_library.logger as logger
 from aperture_library.logger.basic_logs import debug, error, info
 import aperture_library.server.easy_client as client
 import aperture_library.ui.popup as popup
+import aperture_library.voice_commands as voice_commands
 import threading
 import time
 import os
@@ -189,6 +190,42 @@ def test_5_popup():
     return "No items found after time"
 
 
+@test
+def test_6_voice_commands():
+    """Checks the robustness of voice command handling"""
+
+    # Tests of each voice command interaction and their expected intention
+    test_commands = {
+        # move_screens
+        "move to the home": "home",
+        "the settings screen": "settings screen",
+        "go to the profile": "profile",
+
+        # press_button
+        "click the test button": "test button",
+        "press the submit": "submit",
+
+        # open_menu
+        "open the file menu": "file menu",
+        "show the edit menu": "edit menu",
+
+        # type_input
+        "type hello world": "hello world",
+        "write tsa is awesome": "tsa is awesome",
+
+        # select_option
+        "select dark mode": "dark mode",
+        "choose english": "english",
+    }
+
+    for key, value in test_commands.items():
+        interpretation = voice_commands.interpret_intentions(key)
+        if interpretation != value:
+            assert False, f"""{key} failed. Got {interpretation}, expected {value}"""
+
+    return "All voice command tests passed"
+
+
 def test_runner():
     """
     Generates a client and runs all tests
@@ -216,6 +253,7 @@ def test_runner():
     test_3_clear()
     test_4_popup()
     test_5_popup()
+    test_6_voice_commands()
 
     # Print stats
     test_stats()
@@ -226,7 +264,7 @@ def test_runner():
 
 
 if __name__ == "__main__":
-
+    
     # Start the server
     logger.set_stdout()
     logger.clear()

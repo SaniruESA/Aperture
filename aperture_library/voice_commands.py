@@ -11,6 +11,7 @@ from .keyboard_nav import TabNavOrder
 import pyautogui
 from . import ui
 import re
+import difflib
 from .server import server_ticker
 from .voice_command_intentions import intention_json
 
@@ -49,6 +50,15 @@ def press_button(page_name: str, high_priority_kwds: list[str] = []):
             if x["ariaText"].lower() in high_priority_kwds
         ]
 
+    # If no exact matches, try fuzzy-matching ariaText values
+    if len(page_button) == 0:
+        aria_texts = [x["ariaText"] for x in all_buttons]
+        # Use difflib to find a close match for the requested page_name
+        matches = difflib.get_close_matches(page_name.lower(), [a.lower() for a in aria_texts], n=1, cutoff=0.6)
+        if matches:
+            best = matches[0]
+            page_button = [x for x in all_buttons if x["ariaText"].lower() == best]
+
     # Return if none are found
     if len(page_button) == 0:
         return -1
@@ -82,6 +92,11 @@ def search(to_search: str):
     pyautogui.write(to_search)
     pyautogui.press("enter")
 
+def fail():
+    server_ticker.SERVER.tts_queue.generate(
+        "Sorry, I couldn't understand this."
+    )
+
 # Map user intention to functions defined above
 intention_to_function = {
                         "move_screens": press_button,
@@ -99,17 +114,39 @@ def interpret_intentions(command: str):
     # Search through defined set of intentions
     for intention in intention_json:
         for trigger in intention["triggers"]:
-            # Extract "content" of user's request
+
+            # Try exact placeholder extraction
             res = extract_placeholder(command, trigger, placeholder="XXX")
 
-            # If this "content" exists, carry out the action associated with
-            # this intention
-            if extract_placeholder(command, trigger, placeholder="XXX"):
+            if res is not None:
                 intention_to_function[intention["intention_type"]](res)
-                return
+                return res
+            
+    # Use difflib and keyword searching if it fails
+    words = command.split()
+    highest_similarity = 0
+    closest_info = []
+
+    for intention in intention_json:
+        for kw in intention["keywords"]:
+            for word in words:
+                similarity = difflib.SequenceMatcher(None, kw.lower(), word.lower()).ratio()
+                if similarity > highest_similarity:
+                    highest_similarity = similarity
+                    closest_info = [intention, kw, word]
+
+    # Find argument in voice command
+    if closest_info != []:
+        argument = command[command.find(closest_info[2]):].strip().split()
+        intention_to_function[closest_info[0]["intention_type"]](argument)
+        return argument
+
+    # Send fail message as worst case scenario
+    fail()
+    return None
 
 
-def extract_placeholder(text, template, placeholder="XXX"):
+def extract_placeholder(text: str, template: str, placeholder: str="XXX"):
     """Cross-checks a string from a template. If they match, return the value
     of what was labeled by a placeholder"""
 
@@ -124,3 +161,4 @@ def extract_placeholder(text, template, placeholder="XXX"):
         return None
 
     return reg_match.group(1).strip()
+
