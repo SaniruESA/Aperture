@@ -1,164 +1,94 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Aperture</title>
-    <style>
-    html, body {
-        margin: 0;
-        padding: 0;
-        width: 100%;
-        height: 100%;
-        font-family: "Bahnschrift", "Franklin Gothic Medium", "Helvetica Neue", "Arial", sans-serif;
-    }
-    .title-box {
-        width: 100%;
-        height: 100px;
-        background-color: rgb(80, 43, 94);
-        display: flex;
-        align-items: center;      
-        justify-content: center;  
-        color: rgb(255, 255, 255);
-        font-size: 32px;
-        font-weight: bold;    
-        border-bottom-right-radius: 4px;
-        border-bottom-left-radius: 4px;
-        border-bottom: 5px solid #3a223a;
-        box-shadow: 0 6px 32px rgba(0,0,0,0.3);
-    }
-    .enter-box {
-      margin-top: calc(40vh - 50px);
-      margin-left: auto;
-      margin-right: auto;
-      margin-bottom: 16px;
-      width: 70%;
-      padding: 18px;
-      background-color: #623162;
-      display: flex;
-      flex-direction: column;
-      align-items: center;      
-      justify-content: center;  
-      color: rgb(255, 255, 255);
-      font-size: 32px;
-      font-weight: bold;    
-      border: 5px solid #4b2d4b;
-      border-radius: 4px;
-      box-shadow: 0 6px 16px rgba(0,0,0,0.3);
-      /* gap: 8px; */
-    }
-    .side-scroll {
-        width: 100%;
-        height: calc(100% - 100px);
-       background-image: repeating-linear-gradient(
-            45deg,
-            transparent 2px,
-            transparent 15px,
-            #462346 15px,
-            #211421 30px
-        );
-        background-size: 40px 40px;
-        animation: scroll 1s linear infinite;
-        will-change: background-position;
-        overflow: hidden;
-    }
-    .github-link {
-        width: 100%;
-        padding: 12px 10px;
-        margin: 8px 0;
-        display: inline-block;
-        border: 2px solid #8B6B99;
-        border-radius: 4px;
-        box-sizing: border-box;
-        background-color: #1b1b1b;
-        font-size: 16px;
-        font-family: "Bahnschrift", "Franklin Gothic Medium", "Helvetica Neue", "Arial", sans-serif;
-        color: #b9a7bb;
-        transition: border-color 120ms ease, box-shadow 120ms ease;
-        outline: none;
-      }
-      .github-link.valid { border-color: #2d7a2d; box-shadow: 0 0 6px rgba(45,122,45,0.12); }
-      .github-link.invalid { border-color: #7a2d2d; box-shadow: 0 0 6px rgba(122,45,45,0.08); }
-
-      .run-btn {
-        padding: 10px 16px;
-        border-radius: 6px;
-        border: none;
-        background: #2d7a2d;
-        color: white;
-        cursor: pointer;
-        font-size: 16px;
-        font-family: "Bahnschrift", "Franklin Gothic Medium", "Helvetica Neue", "Arial", sans-serif;
-      }
-
-      .run-btn:disabled {
-        background: #6b6b6b;
-        cursor: not-allowed;
-        opacity: 0.7;
-      }
-
-      .error-box {
-        width: 70%;
-        margin: 8px auto 0 auto;
-        padding: 12px 14px;
-        background: #2b1a1a;
-        color: #ff8b8b;
-        border: 2px solid #7a2d2d;
-        border-radius: 6px;
-        font-size: 14px;
-        display: none;
-        box-shadow: 0 6px 16px rgba(0,0,0,0.3);
-      }
-
-      .info-box {
-        width: 70%;
-        margin: 20px auto 0 auto;
-        padding: 14px 16px;
-        background: #1d2027;
-        color: #e6e6e6;
-        border-radius: 8px;
-        font-size: 15px;
-        line-height: 1.4;
-        box-shadow: 0 6px 16px rgba(0,0,0,0.28);
-        text-align: center;
-        border: 5px solid #4b2d4b;
-      }
-
-      .auth-code {
-        width: 70%;
-        margin: 12px auto 0 auto;
-        padding: 10px 12px;
-        background: #1b1b1b;
-        color: #ffdca8;
-        border: 2px solid #3a223a;
-        border-radius: 6px;
-        font-size: 16px;
-        text-align: center;
-        display: none;
-      }
-
-    @keyframes scroll {
-      to { background-position: 40px 0px; }
-    }
-    </style>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@200..700&family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
   </head>
-  <body style="background-color: #3a223a;">
-    <div class="title-box">
-    Welcome to Aperture!
+  <body class="is-ready">
+    <div class="ambient-bg">
+      <div class="orb orb-1"></div>
+      <div class="orb orb-2"></div>
+      <div class="orb orb-3"></div>
+      <div class="noise-overlay"></div>
     </div>
-    <div class="side-scroll">
-      <div class="info-box" id="infoBox" role="status" aria-live="polite">
-        Please fill in the information below for the software you want to make accessible, and then click "Run".
-      </div>
-      <div id="authCodeBox" class="auth-code" aria-live="polite"></div>
-        <div class="enter-box">
-          <input type="text" id="githublink" class="github-link" placeholder="owner/repo or https://github.com/owner/repo">
-          <input type="text" id="entrypoint" class="github-link" placeholder="entry point (e.g. main.py)">
-          <input type="text" id="framework" class="github-link" placeholder="framework (e.g. Tkinter)">
-            <button id="runBtn" class="run-btn" disabled>Run</button>
-          <div id="errorBox" class="error-box" role="alert" aria-live="polite"></div>
-          <script src="src/renderer.js"></script>
-        </div>
 
-    </div>
+    <header class="app-header">
+      <div class="logo" style="font-family: 'Oswald', sans-serif; font-weight: 200; letter-spacing: 2px;">
+        aperture
+      </div>
+      <nav class="nav-actions">
+        <a class="nav-link primary-link" href="https://github.com/nicfanst/aperture" target="_blank">GitHub</a>
+      </nav>
+    </header>
+
+    <main class="app-main">
+      <section class="hero">
+        <h1 class="hero-title">Make software <br/><span class="text-gradient">accessible with a click.</span></h1>
+        <p class="hero-sub">Configure your environment and run your projects instantly.</p>
+      </section>
+
+      <section class="single-card-layout" aria-labelledby="panel-heading">
+        <h2 id="panel-heading" class="sr-only">Project Configuration</h2>
+
+        <div class="glass-card project-card">
+          <h3 class="card-title">Project Info</h3>
+
+          <div class="field-group">
+            <label for="githublink" class="card-label">Repository Source</label>
+            <div class="pill-input-wrapper">
+              <div class="icon-circle">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg>
+              </div>
+              <input type="text" id="githublink" class="pill-input" placeholder="owner/repo or https://github.com/owner/repo">
+            </div>
+          </div>
+
+          <div class="field-group">
+            <label for="entrypoint" class="card-label">Entry Point</label>
+            <div class="pill-input-wrapper no-icon">
+              <input type="text" id="entrypoint" class="pill-input" placeholder="e.g. main.py">
+            </div>
+          </div>
+
+          <div class="field-group">
+            <label for="framework" class="card-label">Framework</label>
+            <div class="pill-input-wrapper no-icon">
+              <input type="text" id="framework" class="pill-input" placeholder="e.g. Tkinter">
+            </div>
+          </div>
+
+          <div class="action-group">
+            <button id="runBtn" class="btn-run pill-button" disabled>
+              <span class="btn-text">Initialize & Run</span>
+              <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+            </button>
+            
+            <div class="toast-container">
+              <div id="errorBox" class="toast error" role="alert" aria-live="polite" hidden></div>
+              <div id="authCodeBox" class="toast info" aria-live="polite" hidden></div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+    </main>
+
+    <footer class="app-footer">
+      <p>© Aperture</p>
+    </footer>
+
+    <script>
+      // Trigger entrance animations
+      document.addEventListener('DOMContentLoaded', function () {
+        try { document.body.classList.add('is-ready'); } catch (e) {}
+      });
+    </script>
+    <script src="src/renderer.js"></script>
   </body>
 </html>
