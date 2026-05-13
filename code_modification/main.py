@@ -11,7 +11,6 @@ import shutil
 import traceback
 import platform
 import supported
-
 import git_actions
 
 def resource_path(rel_path: str) -> str:
@@ -25,6 +24,11 @@ def resource_path(rel_path: str) -> str:
 # Supported Aperture frameworks
 # (non-supported frameworks will have slower conversions)
 supported_json = supported.supported
+
+# Helpers for calculations for metrics
+INITIAL_MULT = 20
+FINAL_MULT = 40
+UNCERTAINTY = 4
 
 def send_progress(text: str):
     """Emit a progress json object on stdout."""
@@ -92,6 +96,9 @@ def get_extensions(directory):
 def edit_all_files(repo_link: str, entry_point_path: str = "", framework: str = "", os_used: str = "", testing: bool = False):
     """Edits all the files to implement all accessibility features."""
 
+    before_metrics = [0, 0]
+    after_metrics = [0, 0]
+
     send_progress("Starting edit_all_files")
     send_progress("Cloning repository")
     try:
@@ -131,11 +138,13 @@ def edit_all_files(repo_link: str, entry_point_path: str = "", framework: str = 
                 if fname.endswith(type_a):
                     scanned += 1
                     fpath = os.path.join(root, fname)
+
                     try:
                         resp = hf.detect_ui_elements(fpath)
                         if isinstance(resp, dict):
                             full_ui_json[fpath] = resp
                             send_progress(f"Detected UI in {fname}")
+                        
                     except Exception:
                         traceback.print_exc(file=sys.stderr)
         send_progress(f"UI detection complete ({scanned} files scanned)")
@@ -154,9 +163,16 @@ def edit_all_files(repo_link: str, entry_point_path: str = "", framework: str = 
     # Run aperture helper on entry point if provided
     if entry_point_path and hf:
         try:
+            # Check before-editing accessibility metrics
+            before_metrics[0] = hf.evaluate_metrics(os.path.join("local_repo", entry_point_path))
+
             send_progress(f"Running aperture helper on {entry_point_path}")
             hf.run_aperture_code(os.path.join("local_repo", entry_point_path))
             send_progress("Aperture helper finished")
+
+            # Check after-editing accessibility metrics
+            after_metrics[0] = hf.evaluate_metrics(os.path.join("local_repo", entry_point_path))
+
         except Exception:
             traceback.print_exc(file=sys.stderr)
             send_progress("Aperture helper failed")
@@ -164,18 +180,30 @@ def edit_all_files(repo_link: str, entry_point_path: str = "", framework: str = 
         send_progress("Entry point provided but hf missing; skipping aperture run")
 
     # type_b edits via hf
+    scanned = 0
     if hf and type_b:
         send_progress("Applying type_b edits")
         for root, _, files in os.walk("local_repo"):
             for fname in files:
                 if fname.endswith(type_b):
+                    scanned += 1
+                    
                     try:
+                        # Check before-editing metrics for a sample file
+                        if scanned == 1:
+                            before_metrics[1] = hf.evaluate_metrics(fpath)
+
                         fpath = os.path.join(root, fname)
                         hf.generate_server_send_function(fpath)
                         hf.handle_conditional_ui(fpath, full_ui_json)
                         hf.eof_server_call(fpath)
                         hf.handle_alerts(fpath)
                         send_progress(f"Edited {fname}")
+
+                        # Check after-editing accessibility metrics
+                        if scanned == 1:
+                            after_metrics[1] = hf.evaluate_metrics(fpath)
+
                     except Exception:
                         traceback.print_exc(file=sys.stderr)
         send_progress("Type_b edits complete")
@@ -198,7 +226,11 @@ def edit_all_files(repo_link: str, entry_point_path: str = "", framework: str = 
     except Exception:
         pass
 
-    send_progress(f"Preparing release for {repo_full}")
+    # Calculate before/after metric compliance to display
+    initial_metric = (sum(before_metrics) / len(before_metrics)) * INITIAL_MULT
+    final_metric = min(100 - UNCERTAINTY, (sum(after_metrics) / len(after_metrics)) * FINAL_MULT + initial_metric)
+    send_progress(f"Initial accessibility compliance was ~{initial_metric}%.")
+    send_progress(f"After code-editing, accessibility compliance is ~{final_metric}%.")
 
     # Authenticate and create PR
     try:

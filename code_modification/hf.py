@@ -36,7 +36,6 @@ def prompt_code(code:str, prompt:str, return_code:bool=True):
             The raw code
     """
 
-
     show_code_prompt = ""
     if return_code:
         show_code_prompt = "Return a version of the initially given code with the requested functionality added. DO NOT leave out any code in the output. And be conservative; prefer false negatives to false positives."
@@ -59,7 +58,7 @@ def prompt_code(code:str, prompt:str, return_code:bool=True):
         "model": "Qwen/Qwen3-Coder-30B-A3B-Instruct:scaleway"
     })
 
-    # Get the content of the responsex
+    # Get the content of the response
     content = response["choices"][0]["message"]["content"]
     # print(content)
     
@@ -184,7 +183,6 @@ def handle_conditional_ui(path:str, ui_elements_json:dict):
         ui_elements_json: A dictionary containing the UI elements and their properties
 
     """
-
     # Make prompt
     prompt = f"""Everywhere there is a conditional showing/hiding or other logic controlling a UI element, call the server_send() function.
     The first argument should be "UI_show" and the second argument should be the key of this UI Element, found in ui_elements.json.
@@ -212,9 +210,6 @@ def eof_server_call(path:str):
     Arguments:
         path: The file path of the code to modify for handling end of file server calls
     """
-
-    file_name = os.path.basename(path)
-
     # Make prompt
     prompt = f"""At the end of the file's execution, insert a function call for server_send()
     Put the first argument as "UI_show" and the second argument as "EOF"."""
@@ -245,7 +240,7 @@ def handle_alerts(path:str):
     with open(path,"r") as fp:
         orig = fp.read()
         
-    # Analyze file with prompt (EOF server call)
+    # Analyze file with prompt (handling alerts)
     output = prompt_code(orig, prompt)
 
     # Write to original file
@@ -261,18 +256,49 @@ def handle_errors(path:str):
         path: The file path of the code to modify for handling errors
     """
     # Make prompt
-    prompt = f"""Scan through the file searching for syntax, runtime, or obvious logic errors, and fix them as efficiently as possible. Avoid removing any code; rather, patch errors with new code. Err on the safe side; if something isn't clearly a logic error, do not fix it."""
+    prompt = f"""Scan through the file searching for syntax, runtime, missing imports, or obvious logic errors, and fix them as efficiently as possible. Avoid removing any code; rather, patch errors with new code. Err on the safe side; if something isn't clearly a logic error, do not fix it."""
 
     # Load file
     with open(path,"r") as fp:
         orig = fp.read()
         
-    # Analyze file with prompt (EOF server call)
+    # Analyze file with prompt (finding code errors)
     output = prompt_code(orig, prompt)
 
     # Write to original file
     with open(path,"w") as fp:
         fp.write(remove_markdown(output))
+
+def evaluate_metrics(path:str):
+    """
+    Evaluates a series of accessibility metrics in a file before/after
+    code editing to determine the effectiveness of Aperture
+
+    Arguments:
+        path: The file path of the code to analyze and acquire a metric of
+    """
+
+    # Get criteria
+    with open("code_modification/metric_criteria.txt","r") as fp:
+        all_criteria = fp.read()
+
+    # Make prompt
+    prompt = f"""Scan through the file, making sure it complies with the following criteria.
+    Evaluate the file's ability to adhere to each of the following criteria on a scale of 1-5.
+    Ignore instructions about returning code; simply return a number containing the average rating
+    of all the criteria (e.g., only return "4.7", or "1.4", etc.)
+    
+    CRITERIA BEGINS HERE:
+    {all_criteria}
+    """
+
+    # Load file
+    with open(path,"r") as fp:
+        orig = fp.read()
+        
+    # Analyze file with prompt (checking metric criteria)
+    output = prompt_code(orig, prompt)
+    return float(output)
 
 
 # Other functions
@@ -344,4 +370,3 @@ def remove_markdown(output:str):
 
     separator = "\n"
     return separator.join(important)
-    

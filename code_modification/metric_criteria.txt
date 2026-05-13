@@ -1,0 +1,14 @@
+Explicit keyboard shortcut or key event handlers
+Focus/navigation support for dialogs and controls
+Dynamic UI updates (show, hide, etc.) are accounted for properly
+Explicitly implemented voice-command system (i.e. user navigates software verbally)
+Effective analysis of the intention of a user’s verbal instruction
+Functionality to navigate UI based on verbal instruction
+Text-to-speech integration present to narrate UI navigation
+UI events/errors announced through speech output
+Speech queueing/interruption handled safely and effectively
+Accessible alert announcements implemented
+Errors/warnings exposed to end users
+Alerts should be multi-sensory, auditory and visual
+Support for captions/transcripts if media exists, or compliance with OS-level subtitle implementations
+If the former, effective subtitle streamlining process

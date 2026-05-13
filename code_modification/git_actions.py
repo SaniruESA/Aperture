@@ -51,6 +51,7 @@ def authenticate_with_github():
 
     print("The GitHub authentication page will open shortly.")
     print(f"Your code ({user_code}) has already been copied to your clipboard, you just need to paste it.")
+    print("Note that GitHub may require its own two-factor authentication if you have that set up in your account.")
 
     try:
         # Print JSON structured message for Electron to receive
