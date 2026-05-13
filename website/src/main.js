@@ -91,15 +91,10 @@ function startPythonProcess() {
         }
         // error from python
         if (obj.status === 'error') {
-          if (mainWindow && !mainWindow.isDestroyed()) {
-            mainWindow.webContents.send('app-error', obj.error || 'unknown python error')
-            // return to index so user can retry
-            const idxPath = path.join(__dirname, '..', 'index.html')
-            mainWindow.loadFile(idxPath).catch(() => {})
-          }
+          showError(obj.error || 'unknown python error')
         }
       } catch (e) {
-        // not JSON - ignore or forward raw lines as progress
+        // not JSON - ignore or forward raw slines as progress
         if (mainWindow && !mainWindow.isDestroyed()) {
           mainWindow.webContents.send('progress', line)
         }
@@ -175,13 +170,19 @@ ipcMain.handle('run-edit-all', async (_event, params) => {
     return { status: 'sent' }
   } catch (err) {
     console.error('Failed to send to python:', err)
-    if (mainWindow && !mainWindow.isDestroyed()) {
-      mainWindow.webContents.send('app-error', String(err))
-      try { await mainWindow.loadFile(path.join(__dirname, '..', 'index.html')) } catch (_) {}
-    }
+    await showError(String(err))
     return { status: 'error', message: String(err) }
   }
 })
+async function showError(msg) {                                                                                                  
+  if (!mainWindow || mainWindow.isDestroyed()) return
+  try {                                                                                                                                 
+    await mainWindow.loadFile(path.join(__dirname, '..', 'index.html'))
+    if (mainWindow && !mainWindow.isDestroyed()) {                                                                                      
+      mainWindow.webContents.send('app-error', msg)                                                                                     
+    }
+  } catch (_) {}                                                                                                                        
+}        
 
 function createWindow() {
   mainWindow = new BrowserWindow({
