@@ -12,9 +12,6 @@
   </head>
   <body class="is-ready">
     <div class="ambient-bg">
-      <div class="orb orb-1"></div>
-      <div class="orb orb-2"></div>
-      <div class="orb orb-3"></div>
       <div class="noise-overlay"></div>
     </div>
 
@@ -22,23 +19,18 @@
       <div class="logo" style="font-family: 'Oswald', sans-serif; font-weight: 200; letter-spacing: 2px;">
         aperture
       </div>
-      <nav class="nav-actions">
-        <a class="nav-link primary-link" href="https://github.com/nicfanst/aperture" target="_blank">GitHub</a>
-      </nav>
     </header>
 
     <main class="app-main">
       <section class="hero">
         <h1 class="hero-title">Make software <br/><span class="text-gradient">accessible with a click.</span></h1>
-        <p class="hero-sub">Configure your environment and run your projects instantly.</p>
+        <p class="hero-sub">Fill in the information below for the software you want to make accessible, and then click "Run".</p>
       </section>
 
       <section class="single-card-layout" aria-labelledby="panel-heading">
         <h2 id="panel-heading" class="sr-only">Project Configuration</h2>
 
         <div class="glass-card project-card">
-          <h3 class="card-title">Project Info</h3>
-
           <div class="field-group">
             <label for="githublink" class="card-label">Repository Source</label>
             <div class="pill-input-wrapper">
@@ -65,7 +57,7 @@
 
           <div class="action-group">
             <button id="runBtn" class="btn-run pill-button" disabled>
-              <span class="btn-text">Initialize & Run</span>
+              <span>Run</span>
               <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
             </button>
             
@@ -84,7 +76,6 @@
     </footer>
 
     <script>
-      // Trigger entrance animations
       document.addEventListener('DOMContentLoaded', function () {
         try { document.body.classList.add('is-ready'); } catch (e) {}
       });
